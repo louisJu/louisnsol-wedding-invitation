@@ -2,7 +2,7 @@
 
 2027년 1월 9일 토요일 오후 1시 · 더채플앳청담 6층 채플홀.
 
-HTML/CSS/JavaScript만 사용하는 정적 사이트입니다. 패키지 설치, 데이터베이스, 서버 API가 필요하지 않습니다. GitHub Pages에 배포할 수 있도록 구성했습니다. BGM과 방명록은 포함하지 않습니다.
+HTML/CSS/JavaScript만 사용하는 정적 사이트입니다. 패키지 설치, 데이터베이스, 서버 API가 필요하지 않습니다. GitHub Pages와 Vercel에 배포할 수 있도록 구성했습니다. BGM과 방명록은 포함하지 않습니다.
 
 ## 로컬에서 보기
 
@@ -48,6 +48,18 @@ gallery: [
 아래 네이버지도·카카오맵·티맵 버튼과 별도의 교통 안내를 유지합니다. 네이버지도는 `venue.naverPlaceId`에 지정한 장소를 엽니다. 지도 전체를 누르면 네이버지도로 이동하던 동작은 제거했습니다. 지도 확대·축소는 버튼 기준으로 안내하며, 두 손가락 확대는 브라우저 테스트에서 확인되지 않았습니다.
 
 지하철·자가용/주차·셔틀·ATM 안내는 `venue.transport`에서 관리합니다. 셔틀은 공개 안내의 강남구청역 3번 출구, 약 10~15분 간격을 반영했습니다. ATM은 2026년 방문 후기 두 곳에서 확인한 건물 4층으로 안내합니다. 예식장 공식 확인 자료는 아니므로 예식일 운영 조건과 함께 배포 전에 확인해 조정하세요. 무료 주차 시간은 확정되지 않아 넣지 않았습니다. 예식장 전화번호는 표시하지 않습니다. 공유 설명은 이름·날짜·장소에서 자동 생성됩니다.
+
+## Vercel 배포 준비
+
+희망 프로젝트 이름은 `solnlouis-wedding`이며, 희망 주소는 `https://solnlouis-wedding.vercel.app/`입니다. Vercel 계정 연결 후 프로젝트 생성과 주소 할당을 확인해야 합니다.
+
+1. Vercel에서 기존 GitHub 저장소 `louisJu/louisnsol-wedding-invitation`을 연결합니다.
+2. 프로젝트 이름을 `solnlouis-wedding`, 배포 브랜치를 `main`, Root Directory를 저장소 최상위(`./`)로 설정합니다.
+3. `vercel.json`에 정의한 설정으로 배포합니다. Framework Preset은 **Other**, Output Directory는 **dist**이며 패키지 설치는 생략합니다. 빌드 단계에서 설정을 검증하고 공유 미리보기 정보를 생성합니다.
+4. 희망 도메인의 할당을 확인한 후 `dist/config.js`의 `siteUrl`을 실제 Vercel 공개 주소로 변경하고 `npm run prepare:pages`를 실행합니다. 현재는 이미 배포된 GitHub Pages 주소를 사용합니다.
+5. Git 연동이 완료되면 `main`에 push할 때마다 Vercel에도 자동 배포됩니다. 결과는 Vercel 프로젝트의 **Deployments**에서 확인합니다.
+
+`.vercel/`은 이 컴퓨터의 프로젝트 연결 정보이므로 Git에서 제외합니다. `prepare:pages` 명령은 두 호스팅 환경에서 공유 미리보기 메타데이터를 생성하는 용도로 사용합니다.
 
 ## GitHub Pages 배포
 
