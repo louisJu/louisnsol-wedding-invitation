@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <!-- Resolve Kakao's protocol-relative assets over HTTPS, including file previews. -->
+  <base href="https://map.kakao.com/">
+  <title>더채플앳청담 카카오 약도</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; background: #f3efe7; }
+    .root_daum_roughmap { width: 100% !important; box-sizing: border-box; }
+    .map-status { position: absolute; inset: 0; z-index: 10; margin: 0; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: #f3efe7; color: #756f64; text-align: center; font: 14px/1.8 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; }
+    .map-status[hidden] { display: none; }
+    .map-status a { display: inline-flex; align-items: center; min-height: 48px; color: #34312c; text-underline-offset: 4px; }
+  </style>
+</head>
+<body>
+  <div id="daumRoughmapContainer1792910948433" class="root_daum_roughmap root_daum_roughmap_landing"></div>
+  <p class="map-status" id="map-status" role="status"><span id="map-status-text">지도를 불러오는 중입니다.</span><a href="https://map.kakao.com/link/map/23182563" target="_blank" rel="noopener noreferrer">카카오맵에서 보기 ↗</a></p>
+  <script>
+    const mapStatus = document.getElementById("map-status");
+    function showMapError() {
+      document.getElementById("map-status-text").textContent = "지도를 불러오지 못했습니다.";
+    }
+    const loadingTimeout = setTimeout(showMapError, 12000);
+    // A loaded map tile confirms that the external map is visible, not only its frame.
+    document.addEventListener("load", (event) => {
+      if (event.target instanceof HTMLImageElement && event.target.src.includes("/tile/") && event.target.naturalWidth) {
+        mapStatus.hidden = true;
+        clearTimeout(loadingTimeout);
+      }
+    }, true);
+  </script>
+  <!-- Official Kakao roughmap embed. The key is a public map ID, not an API credential. -->
+  <script charset="UTF-8" class="daum_roughmap_loader_script" src="https://t1.kakaocdn.net/kakaomapweb/roughmap/loader/prod/roughmapLoader.js" onerror="showMapError()"></script>
+  <script>
+    if (window.daum?.roughmap?.Lander) {
+      new daum.roughmap.Lander({
+        "timestamp": "1792910948433",
+        "key": "3vzqh6bpdkw",
+        "mapWidth": String(document.documentElement.clientWidth),
+        "mapHeight": "380"
+      }).render();
+    } else {
+      showMapError();
+    }
+  </script>
+</body>
+</html>
