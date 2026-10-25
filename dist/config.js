@@ -51,7 +51,7 @@ window.WEDDING_CONFIG = {
   // 별도 안내가 필요하면 문구를 입력하세요. 빈 문자열이면 영역을 숨깁니다.
   notice: "",
   // 청첩장 공유에 사용하는 공개 주소입니다.
-  siteUrl: "https://louisju.github.io/louisnsol-wedding-invitation/",
+  siteUrl: "https://solnlouis-wedding.vercel.app/",
   // 카카오톡 등에서 사용하는 공유 이미지. 표지 교체 시 함께 바꾸세요.
   shareImage: "assets/couple-cover.jpg",
   // 비우면 이름·날짜·장소에서 자동 생성합니다.
