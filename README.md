@@ -51,13 +51,13 @@ gallery: [
 
 ## Vercel 배포
 
-Vercel 프로젝트는 `hwandol/solnlouis-wedding`이며, 청첩장 공유 주소는 https://solnlouis-wedding.vercel.app/ 입니다. 프로젝트의 무료 Hobby 플랜을 사용합니다.
+Vercel 프로젝트는 `hwandol/solnlouis-wedding`이며, 청첩장 공유 주소는 https://solnlouis-wedding.vercel.app/ 입니다. 무료 Hobby 플랜을 사용하며, GitHub 저장소 `louisJu/louisnsol-wedding-invitation`과 연결되어 있습니다.
 
 1. Vercel에서 기존 GitHub 저장소 `louisJu/louisnsol-wedding-invitation`을 연결합니다.
 2. 프로젝트 이름을 `solnlouis-wedding`, 배포 브랜치를 `main`, Root Directory를 저장소 최상위(`./`)로 설정합니다.
 3. `vercel.json`에 정의한 설정으로 배포합니다. Framework Preset은 **Other**, Output Directory는 **dist**이며 패키지 설치는 생략합니다. 빌드 단계에서 설정을 검증하고 공유 미리보기 정보를 생성합니다.
 4. `dist/config.js`의 `siteUrl`에는 위 Vercel 공개 주소를 설정했습니다. 주소를 변경하면 이 값도 수정하고 `npm run prepare:pages`를 실행합니다.
-5. Git 연동이 완료되면 `main`에 push할 때마다 Vercel에도 자동 배포됩니다. 결과는 Vercel 프로젝트의 **Deployments**에서 확인합니다.
+5. `main`에 push할 때마다 Vercel에 자동 배포됩니다. 결과는 [Vercel 프로젝트의 Deployments](https://vercel.com/hwandol/solnlouis-wedding/deployments)에서 확인합니다. 실패한 배포가 있으면 마지막으로 성공한 청첩장을 계속 제공합니다.
 
 `.vercel/`은 이 컴퓨터의 프로젝트 연결 정보이므로 Git에서 제외합니다. `.vercelignore`로 로컬 시안과 환경 파일을 CLI 업로드에서도 제외합니다. `prepare:pages` 명령은 두 호스팅 환경에서 공유 미리보기 메타데이터를 생성하는 용도로 사용합니다.
 
