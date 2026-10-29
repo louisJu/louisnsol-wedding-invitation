@@ -10,11 +10,21 @@ window.WEDDING_CONFIG = {
     "사람이 온다는 건\n실은 어마어마한 일이다.\n그는 그의 과거와 현재와\n그리고 그의 미래와 함께 오기 때문이다.\n한 사람의 일생이 오기 때문이다."
   ],
   invitationSource: "정현종, 「방문객」\n시집 『광휘의 속삭임』",
-  cover: { src: "assets/couple-cover.jpg", alt: "꽃다발을 함께 든 주환석과 김솔의 웨딩 사진", position: "center 35%" },
+  cover: {"src": "assets/main/03_LYH00763_선수정-1.jpg", "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진", "position": "center"},
   // 새 메인 사진은 assets/main/, 갤러리 사진은 assets/gallery/에 원본 그대로 보관합니다.
   // 파일을 넣은 뒤 cover.src, shareImage 및 아래 gallery에 상대 경로를 등록합니다.
   // 예: { src: "assets/gallery/01.jpg", alt: "함께한 봄날" }
-  gallery: [],
+  gallery: [
+    {"src": "assets/gallery/01_LYH00441_기본액자_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 1"},
+    {"src": "assets/gallery/02_LYH00666_bw_선수정-1(흑백).jpg", "alt": "주환석과 김솔의 웨딩 사진 2"},
+    {"src": "assets/gallery/04_LYH00960_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 3"},
+    {"src": "assets/gallery/05_LYH03216_bw_선수정-1(흑백).jpg", "alt": "주환석과 김솔의 웨딩 사진 4"},
+    {"src": "assets/gallery/06_LYH03261_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 5"},
+    {"src": "assets/gallery/07_LYH03513_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 6"},
+    {"src": "assets/gallery/08_LYH03817_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 7"},
+    {"src": "assets/gallery/09_LYH03874_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 8"},
+    {"src": "assets/gallery/10_LYH00366_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 9"}
+  ],
   venue: {
     name: "더채플앳청담",
     hall: "6층 채플홀",
@@ -55,7 +65,7 @@ window.WEDDING_CONFIG = {
   // 청첩장 공유에 사용하는 공개 주소입니다.
   siteUrl: "https://solnlouis-wedding.vercel.app/",
   // 카카오톡 등에서 사용하는 공유 이미지. 표지 교체 시 함께 바꾸세요.
-  shareImage: "assets/couple-cover.jpg",
+  shareImage: "assets/main/03_LYH00763_선수정-1.jpg",
   // 비우면 이름·날짜·장소에서 자동 생성합니다.
   shareDescription: ""
 };
