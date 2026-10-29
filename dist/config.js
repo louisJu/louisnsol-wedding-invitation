@@ -11,7 +11,9 @@ window.WEDDING_CONFIG = {
   ],
   invitationSource: "정현종, 「방문객」\n시집 『광휘의 속삭임』",
   cover: { src: "assets/couple-cover.jpg", alt: "꽃다발을 함께 든 주환석과 김솔의 웨딩 사진", position: "center 35%" },
-  // 예: { src: "assets/photo-01.jpg", alt: "함께한 봄날" }
+  // 새 메인 사진은 assets/main/, 갤러리 사진은 assets/gallery/에 원본 그대로 보관합니다.
+  // 파일을 넣은 뒤 cover.src, shareImage 및 아래 gallery에 상대 경로를 등록합니다.
+  // 예: { src: "assets/gallery/01.jpg", alt: "함께한 봄날" }
   gallery: [],
   venue: {
     name: "더채플앳청담",

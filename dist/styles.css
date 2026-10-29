@@ -31,17 +31,15 @@ img { display: block; max-width: 100%; }
 .skip-link { position: fixed; z-index: 100; top: 12px; left: 12px; background: var(--paper); padding: 12px 16px; transform: translateY(-200%); }
 .skip-link:focus { transform: none; }
 
-/* A full-screen photograph with readable text over soft, local shading. */
-.hero { position: relative; isolation: isolate; height: 100vh; height: 100svh; min-height: 480px; display: flex; flex-direction: column; color: #fff; background: #423d36; }
-.hero-portrait { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
-.hero-portrait::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(20,18,16,.58) 0%, rgba(20,18,16,.4) 20%, rgba(20,18,16,.08) 45%, rgba(20,18,16,.12) 100%); }
+/* Keep the photograph undimmed; ceremony details sit on paper below it. */
+.hero { background: var(--paper); }
+.hero-portrait { position: relative; width: 100%; height: 100vh; height: 100svh; min-height: 480px; overflow: hidden; }
 .hero-image { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
-.hero-top { position: absolute; z-index: 1; top: max(26px, env(safe-area-inset-top)); left: 28px; right: 28px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: 1.8px; color: rgba(255,255,255,.9); }
+.hero-top { position: absolute; top: max(26px, env(safe-area-inset-top)); left: 28px; right: 28px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: 1.8px; }
 .hero-top span:last-child { font-variant-numeric: tabular-nums; font-size: 12px; }
-.hero h1 { position: absolute; z-index: 1; top: clamp(76px, 10svh, 104px); left: 0; right: 0; display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 23px; font-family: var(--serif); font-size: 34px; line-height: 1.5; letter-spacing: 2px; font-weight: 400; white-space: nowrap; text-shadow: 0 1px 16px rgba(0,0,0,.16); }
+.hero h1 { position: absolute; bottom: clamp(100px, 18svh, 160px); left: 0; right: 0; display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 23px; font-family: var(--serif); font-size: 34px; line-height: 1.5; letter-spacing: 2px; font-weight: 400; white-space: nowrap; }
 .hero .name-divider { font-family: var(--sans); font-size: 18px; letter-spacing: 0; opacity: .75; }
-.hero-content { position: relative; z-index: 1; margin-top: auto; display: flex; flex-direction: column; justify-content: center; padding: 24px 30px max(24px, env(safe-area-inset-bottom)); text-align: center; }
-.hero-content::before { content: ""; position: absolute; z-index: -1; inset: -80px 0 0; pointer-events: none; background: linear-gradient(180deg, rgba(20,18,16,0) 0%, rgba(20,18,16,.62) 30%, rgba(20,18,16,.8) 100%); }
+.hero-content { display: flex; flex-direction: column; align-items: center; padding: 36px 30px 40px; text-align: center; }
 .hero-details { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .hero-date { font-size: 16px; font-weight: 500; letter-spacing: .2px; }
 .hero-time { font-size: 19px; font-weight: 500; }
@@ -56,11 +54,10 @@ img { display: block; max-width: 100%; }
 .button-solid { background: var(--accent); color: #fffdf8; }
 .button:active { background: #e8e1d5; }
 .button-solid:active { background: var(--accent-pressed); }
-.hero-directions { max-width: 264px; margin: 20px auto 0; justify-content: flex-start; color: #fff; border-color: rgba(255,255,255,.65); background: rgba(255,255,255,.03); }
-.hero-directions:hover, .hero-directions:active { background: rgba(255,255,255,.14); }
-.hero-directions:focus-visible { outline-color: #fff; }
+.hero-directions { max-width: 264px; margin: 24px auto 0; justify-content: flex-start; border-color: #c9c0b3; background: transparent; }
+.hero-directions:hover, .hero-directions:active { background: #eae3d8; }
 .hero-directions svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; }
-.scroll-hint { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; color: rgba(255,255,255,.86); font-size: 11px; letter-spacing: .2px; }
+.scroll-hint { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; letter-spacing: .2px; }
 .scroll-hint span { font-size: 14px; line-height: 1; }
 .text-button { display: inline-flex; align-items: center; justify-content: center; gap: 18px; min-height: 48px; padding: 0 18px; margin-top: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; font-size: 13px; }
 
@@ -203,16 +200,9 @@ dialog::backdrop { background: #211b15b3; }
 @media (max-height: 700px) {
   .hero h1 { font-size: 30px; gap: 18px; }
   .hero-top { left: 24px; right: 24px; font-size: 10px; letter-spacing: 1px; }
-  .hero-content { padding-top: 14px; padding-bottom: max(14px, env(safe-area-inset-bottom)); }
-  .hero-details { gap: 0; }
-  .hero-date { line-height: 1.6; }
-  .hero-time { line-height: 1.5; }
-  .hero-venue { margin-top: 6px; line-height: 1.6; }
-  .hero-directions { margin-top: 12px; }
-  .scroll-hint { margin-top: 10px; }
 }
 @media (max-height: 600px) {
-  .hero h1 { top: 64px; font-size: 28px; }
+  .hero h1 { font-size: 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
