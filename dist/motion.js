@@ -4,8 +4,43 @@
   // Content stays visible if motion is disabled or the browser lacks this feature.
   if (reducedMotion.matches || !("IntersectionObserver" in window)) return;
 
+  const hero = document.querySelector(".hero-content");
+  const names = hero.querySelector(".hero-names");
+  const handwriting = hero.querySelector(".hero-handwriting");
+  let heroStarted = false, heroInView = false, heroFontReady = false;
+  let fontTimeout;
+  const heroObserver = new IntersectionObserver((entries) => {
+    heroInView = entries.some((entry) => entry.isIntersecting && entry.intersectionRatio >= .25);
+    if (heroInView && heroFontReady) revealHero();
+  }, { threshold: .25 });
+
+  function revealHero(immediate = false) {
+    if (heroStarted && !immediate) return;
+    heroStarted = true;
+    clearTimeout(fontTimeout);
+    heroObserver.disconnect();
+    hero.classList.remove("handwriting-pending");
+    hero.classList.toggle("handwriting-writing", !immediate);
+  }
+
+  // Wait for the actual lettering and its first appearance, even on short screens.
+  // A missing/slow font must never leave the invitation names hidden.
+  hero.classList.add("handwriting-pending");
+  // Observe the unclipped container so the initially hidden lettering cannot block its own reveal.
+  heroObserver.observe(hero);
+  fontTimeout = setTimeout(() => revealHero(true), 2000);
+  if (document.fonts) {
+    document.fonts.load('40px "Wedding Handwriting"', `${names.textContent} ${handwriting.textContent}`)
+      .then((fonts) => {
+        clearTimeout(fontTimeout);
+        if (!fonts.length) { revealHero(true); return; }
+        heroFontReady = true;
+        if (heroInView) revealHero();
+      }, () => revealHero(true));
+  } else revealHero(true);
+
   const selectors = [
-    ".hero-handwriting", ".intro > h2", ".intro-rule", ".invitation-copy > p", ".invitation-source", ".families",
+    ".intro > h2", ".intro-rule", ".invitation-copy > p", ".invitation-source", ".families",
     ".wedding-day > h2", ".date-line", ".calendar", ".countdown", ".countdown-caption",
     ".gallery > h2", ".gallery-grid > *",
     ".location > h2", ".transport-item",
@@ -29,6 +64,7 @@
     observer.unobserve(element);
   }
   function revealAll() {
+    revealHero(true);
     pending.forEach((element) => reveal(element, true));
     observer.disconnect();
   }
