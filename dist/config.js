@@ -2,8 +2,8 @@
 // 사진 경로는 dist/ 기준이며 앞에 /를 붙이지 않습니다.
 // 이 파일의 내용은 배포 후 누구나 읽을 수 있습니다. 비밀키를 넣지 마세요.
 window.WEDDING_CONFIG = {
-  groom: { name: "주환석", father: "", mother: "", relation: "아들", phone: "" },
-  bride: { name: "김솔", father: "", mother: "", relation: "딸", phone: "" },
+  groom: { name: "주환석", father: "주규천", mother: "김혜숙", relation: "아들", phone: "" },
+  bride: { name: "김솔", father: "김천석", mother: "이금주", relation: "딸", phone: "" },
   date: "2027-01-09T13:00:00+09:00",
   durationMinutes: 90,
   invitation: [
@@ -35,13 +35,15 @@ window.WEDDING_CONFIG = {
     naverPlaceId: "34120522",
     // 공개 교통 안내 기준입니다. 배포 전 예식일의 운영 조건을 확인하세요.
     transport: [
-      { title: "지하철", detail: "7호선 · 수인분당선 강남구청역\n3-1번 출구에서 도보 약 8분", note: "선릉로를 따라 학동사거리 방향으로 이동해 주세요." },
+      // 버스 하차 지점·도보 안내는 사용자 제공 더무드 샘플 기준입니다.
+      { title: "버스 이용 시", detail: "영동고등학교·현대아파트 정류장 하차", note: "학동사거리 방향으로 약 120m 직진\n도보 약 1분 거리입니다." },
+      { title: "지하철", lines: [{ name: "7호선", color: "#747f00" }, { name: "수인분당선", color: "#d5a700" }], detail: "강남구청역 3-1번 출구에서 도보 약 8분", note: "선릉로를 따라 학동사거리 방향으로 이동해 주세요." },
       { title: "자가용 · 주차", detail: "내비게이션에 ‘더채플앳청담’을 검색해 주세요.\n서울 강남구 선릉로 757", note: "내부 주차장이 만차일 경우, 현장 직원의 안내에 따라 외부 주차장을 이용해 주세요." },
-      { title: "셔틀버스", detail: "강남구청역 3번 출구 앞\n웨딩홀 셔틀버스를 이용하실 수 있습니다.", note: "운행 간격은 약 10~15분입니다." },
+      { title: "셔틀버스", icon: "🚌", detail: "강남구청역 3번 출구 앞\n웨딩홀 셔틀버스를 이용하실 수 있습니다.", note: "운행 간격은 약 10~15분입니다." },
       { title: "ATM 안내", detail: "현금인출기(ATM)는 건물 4층에 있습니다." }
     ]
   },
-  // people은 기본 표시, parents는 부모님 계좌 펼치기 안에 표시합니다.
+  // 신랑측·신부측 그룹을 펼치면 people과 parents를 함께 표시합니다.
   // relation은 예금주 이름 뒤에 작은 괄호로 표시합니다.
   // 실제 계좌 입력 후 해당 항목의 placeholder를 false로 바꾸면 복사 버튼이 활성화됩니다.
   accounts: [

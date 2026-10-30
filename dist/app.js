@@ -25,7 +25,7 @@
   fill("[data-bride]", config.bride.name);
   fill("[data-venue]", config.venue.name);
   fill("[data-hall]", config.venue.hall);
-  $("hero-date").textContent = dateText;
+  $("hero-date").textContent = `${dateText},`;
   $("hero-time").textContent = timeText;
   $("ceremony-date").append(element("span", dateText), element("strong", timeText));
   fill("[data-date-numeric]", `${year}. ${String(month).padStart(2, "0")}. ${String(day).padStart(2, "0")}.`);
@@ -49,28 +49,17 @@
   if (parents.length) {
     $("families").hidden = false;
     parents.forEach((person) => {
-      const row = element("p", `${[person.father, person.mother].filter(Boolean).join(" · ")}의 ${person.relation} `);
-      row.append(element("strong", person.name));
+      const row = element("p", undefined, "family-row");
+      row.append(element("span", `${[person.father, person.mother].filter(Boolean).join(" · ")} `, "family-parents"));
+      row.append(element("span", `의 ${person.relation} `, "family-relation"));
+      const child = element("strong", undefined, "family-child");
+      [...person.name].forEach((character) => {
+        const letter = element("span", character);
+        child.append(letter);
+      });
+      row.append(child);
       $("families").append(row);
     });
-  }
-  const phoneValue = (value) => value.replace(/[^+\d]/g, "");
-  const contacts = [["신랑", config.groom], ["신부", config.bride]].filter(([, person]) => person.phone);
-  if (contacts.length) {
-    $("contact-button").hidden = false;
-    contacts.forEach(([role, person]) => {
-      const row = element("div", undefined, "contact-row");
-      row.append(element("span", `${role} ${person.name}`));
-      const links = element("div", undefined, "contact-links");
-      [["전화", "tel:"], ["문자", "sms:"]].forEach(([label, protocol]) => {
-        const a = element("a", label);
-        a.href = protocol + phoneValue(person.phone);
-        a.setAttribute("aria-label", `${person.name} 님에게 ${label}`);
-        links.append(a);
-      });
-      row.append(links); $("contact-list").append(row);
-    });
-    $("contact-button").addEventListener("click", () => openDialog($("contact-dialog")));
   }
 
   // Calendar is calculated in Korea time, including for visitors abroad.
@@ -161,37 +150,53 @@
   $("tmap").setAttribute("aria-label", "티맵 앱으로 길찾기");
   config.venue.transport.forEach((item) => {
     const row = element("article", undefined, "transport-item");
-    row.append(element("h3", item.title), element("p", item.detail));
+    const heading = element("h3");
+    if (item.icon) {
+      const icon = element("span", item.icon, "transport-icon");
+      icon.setAttribute("aria-hidden", "true");
+      heading.append(icon);
+    }
+    heading.append(document.createTextNode(item.title));
+    row.append(heading);
+    if (item.lines?.length) {
+      const lines = element("p", undefined, "transport-lines");
+      item.lines.forEach((line) => {
+        const label = element("span"), dot = element("i");
+        dot.style.backgroundColor = line.color;
+        dot.setAttribute("aria-hidden", "true");
+        label.append(dot, document.createTextNode(line.name));
+        lines.append(label);
+      });
+      row.append(lines);
+    }
+    row.append(element("p", item.detail));
     if (item.note) row.append(element("p", item.note, "transport-note"));
     $("transport-list").append(row);
   });
 
   function accountRow(person) {
-    const row = element("div", undefined, "account-person"), info = element("div", person.name);
-    if (person.relation) info.append(element("span", ` (${person.relation})`, "account-relation"));
-    info.append(element("small", `${person.bank} ${person.number}`));
-    const button = element("button", "복사"); button.type = "button";
-    button.setAttribute("aria-label", `${person.name} 님 계좌번호 복사`);
+    const row = element("button", undefined, "account-person"); row.type = "button";
+    row.setAttribute("aria-label", `${person.name} 님 계좌번호 복사`);
+    const name = element("span", undefined, "account-person-name"), icon = element("span", undefined, "copy-icon");
+    icon.setAttribute("aria-hidden", "true");
+    name.append(icon, document.createTextNode(person.name));
+    if (person.relation) name.append(element("span", ` (${person.relation})`, "account-relation"));
+    row.append(name, element("span", `${person.bank} ${person.number}`, "account-number"));
     if (person.placeholder) {
-      info.append(element("small", "임시 계좌 정보", "account-placeholder"));
-      button.disabled = true;
-    } else button.addEventListener("click", () => copy(person.number, "계좌번호를 복사했어요."));
-    row.append(info, button); return row;
+      row.append(element("small", "임시 계좌 정보", "account-placeholder"));
+      row.disabled = true;
+    } else row.addEventListener("click", () => copy(person.number, "계좌번호를 복사했어요."));
+    return row;
   }
   config.accounts.forEach((group) => {
-    const card = element("article", undefined, "account-group");
-    card.append(element("h3", group.title));
+    const card = element("details", undefined, "account-group"), summary = element("summary", group.title);
+    summary.setAttribute("aria-label", `${group.title} 계좌 펼치기`);
+    card.append(summary);
+    card.addEventListener("toggle", () => {
+      summary.setAttribute("aria-label", `${group.title} 계좌 ${card.open ? "접기" : "펼치기"}`);
+    });
     if (!group.people.length && !group.parents?.length) card.append(element("p", "계좌 안내를 준비하고 있습니다.", "account-empty"));
-    group.people.forEach((person) => card.append(accountRow(person)));
-    if (group.parents?.length) {
-      const details = element("details"), summary = element("summary");
-      summary.append(element("span", "부모님 계좌"), element("span", "펼치기", "account-toggle"));
-      summary.setAttribute("aria-label", `${group.title} 부모님 계좌`);
-      details.append(summary);
-      details.addEventListener("toggle", () => { summary.querySelector(".account-toggle").textContent = details.open ? "접기" : "펼치기"; });
-      group.parents.forEach((person) => details.append(accountRow(person)));
-      card.append(details);
-    }
+    [...group.people, ...(group.parents || [])].forEach((person) => card.append(accountRow(person)));
     $("accounts-list").append(card);
   });
   if (!config.accounts.length) $("accounts-list").append(element("p", "계좌 안내를 준비하고 있습니다.", "account-empty"));

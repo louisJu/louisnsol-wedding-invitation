@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#faf9f5">
+  <meta name="theme-color" content="#fafafa">
   <title>주환석 · 김솔의 결혼식에 초대합니다</title>
   <meta name="description" content="주환석 · 김솔의 결혼식에 초대합니다. 2027년 1월 9일 토요일 오후 1시, 더채플앳청담 6층 채플홀.">
   <meta property="og:type" content="website">
@@ -13,7 +13,7 @@
   <meta property="og:url" content="https://solnlouis-wedding.vercel.app/">
   <meta property="og:image" content="https://solnlouis-wedding.vercel.app/assets/optimized/share.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="assets/fonts/nanum-brush-script-wedding.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="paper-fonts.css">
   <link rel="stylesheet" href="styles.css">
   <script src="config.js" defer></script>
   <script src="app.js" defer></script>
@@ -23,32 +23,33 @@
   <a class="skip-link" href="#location">오시는 길 바로가기</a>
   <aside class="desktop-note" aria-hidden="true"><span>결혼식 초대장</span><p><span data-groom>주환석</span> · <span data-bride>김솔</span></p><i data-date-numeric>2027. 01. 09.</i></aside>
   <main class="invitation">
+    <div id="flower-effect" class="flower-effect" aria-hidden="true"></div>
     <header class="hero" id="home">
       <div class="hero-portrait">
         <img id="cover-image" class="hero-image" src="assets/optimized/cover.webp" alt="초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진" fetchpriority="high" width="1200" height="1800">
       </div>
       <div class="hero-content">
-        <h1 class="hero-names"><span data-groom>주환석</span><span class="name-divider" aria-hidden="true">·</span><span data-bride>김솔</span></h1>
-        <p class="hero-handwriting"><span>저희, 결혼합니다</span></p>
+        <h1 class="hero-names"><span data-groom>주환석</span><span class="name-divider" aria-hidden="true">&amp;</span><span data-bride>김솔</span></h1>
+        <p class="hero-handwriting"><span>저희 결혼합니다.</span></p>
+        <p class="hero-divider" aria-hidden="true">-</p>
         <div class="hero-details">
-          <p class="hero-date" id="hero-date">2027년 1월 9일 토요일</p>
-          <p class="hero-time" id="hero-time">오후 1시</p>
-          <p class="hero-venue"><span data-venue>더채플앳청담</span><strong data-hall>6층 채플홀</strong></p>
+          <p class="hero-schedule"><span class="hero-date" id="hero-date">2027년 1월 9일 토요일</span> <span class="hero-time" id="hero-time">오후 1시</span></p>
+          <p class="hero-venue"><span data-venue>더채플앳청담</span></p>
         </div>
         <a class="button hero-directions" href="#location"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>오시는 길<span aria-hidden="true">↗</span></a>
       </div>
     </header>
 
     <section class="section intro" aria-labelledby="intro-title">
-      <h2 id="intro-title">소중한 당신을<br>초대합니다.</h2>
-      <div class="intro-rule" aria-hidden="true"></div>
+      <p class="section-eyebrow" lang="en">INVITATION</p>
+      <h2 id="intro-title">소중한 분들을 초대합니다</h2>
       <div id="invitation-copy" class="invitation-copy"></div>
       <p id="invitation-source" class="invitation-source" hidden></p>
       <div id="families" class="families" hidden></div>
-      <button id="contact-button" class="button button-outline" type="button" hidden>축하 연락하기 <span aria-hidden="true">↗</span></button>
     </section>
 
     <section class="section wedding-day" aria-labelledby="day-title">
+      <p class="section-eyebrow" lang="en">WEDDING DAY</p>
       <h2 id="day-title">결혼식 안내</h2>
       <p id="ceremony-date" class="date-line"></p>
       <div class="calendar" id="calendar" aria-label="2027년 1월 예식 달력"></div>
@@ -58,12 +59,14 @@
     </section>
 
     <section class="section gallery" id="gallery-section" aria-labelledby="gallery-title">
+      <p class="section-eyebrow" lang="en">GALLERY</p>
       <h2 id="gallery-title">사진첩</h2>
       <div class="gallery-grid" id="gallery-grid" aria-label="웨딩 사진"></div>
       <button class="text-button gallery-toggle" id="gallery-toggle" type="button" aria-expanded="false" aria-controls="gallery-grid" hidden>사진 더보기 <span aria-hidden="true">＋</span></button>
     </section>
 
     <section class="section location" id="location" aria-labelledby="location-title" tabindex="-1">
+      <p class="section-eyebrow" lang="en">LOCATION</p>
       <h2 id="location-title">오시는 길</h2>
       <p class="location-name"><span data-venue>더채플앳청담</span><strong data-hall>6층 채플홀</strong></p>
       <p class="address-line"><span id="venue-address">서울 강남구 선릉로 757</span><button id="copy-address" type="button" aria-label="예식장 주소 복사">복사</button></p>
@@ -73,17 +76,21 @@
         </div>
         <figcaption id="map-help">＋ · − 버튼으로 확대·축소할 수 있어요.<br>길찾기는 아래 지도 버튼을 이용해 주세요.</figcaption>
       </figure>
-      <div class="map-links"><a id="naver-map" target="_blank" rel="noopener noreferrer">네이버지도</a><a id="kakao-map" target="_blank" rel="noopener noreferrer">카카오맵</a><a id="tmap">티맵</a></div>
+      <div class="map-links">
+        <a id="naver-map" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#03c75a" d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8Z"/><path fill="#fff" d="M8 6h3l3 5V6h2v9h-3l-3-5v5H8Z"/></svg>네이버지도</a>
+        <a id="kakao-map" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#ffe000"/><path d="M12 5a5 5 0 0 0-5 5c0 4 5 9 5 9s5-5 5-9a5 5 0 0 0-5-5Z" fill="#3a8de4"/><circle cx="12" cy="10" r="2" fill="#fff"/></svg>카카오맵</a>
+        <a id="tmap"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00bfd9" d="M3 4h18v5H3Z"/><path fill="#aa57e3" d="M10 4h5v17h-5Z"/><path fill="#ff7cac" d="M3 4h12v5H3Z"/></svg>티맵</a>
+      </div>
       <div class="transport-list" id="transport-list"></div>
     </section>
 
-    <section class="section accounts" id="accounts-section" aria-labelledby="accounts-title"><h2 id="accounts-title">마음 전하실 곳</h2><p class="section-subtitle">축하해 주시는 마음, 감사히 간직하겠습니다.</p><div id="accounts-list"></div></section>
+    <section class="section accounts" id="accounts-section" aria-labelledby="accounts-title"><p class="section-eyebrow" lang="en">ACCOUNT</p><h2 id="accounts-title">마음 전하실 곳</h2><p class="section-subtitle">참석이 어려우신 분들을 위해<br>계좌번호를 기재하였습니다.<br>너그러운 마음으로 양해 부탁드립니다.</p><div id="accounts-list"></div></section>
     <section class="section notice" id="notice-section" hidden><p id="notice-text"></p></section>
 
-    <footer class="section closing" id="share"><p class="closing-title">함께해 주시는 마음,<br>오래도록 기억하겠습니다.</p><p class="signature"><span data-groom>주환석</span><span class="muted">그리고</span><span data-bride>김솔</span></p><div class="share-actions"><button id="share-button" class="button button-solid" type="button">청첩장 공유하기 <span aria-hidden="true">↗</span></button><button id="copy-link" class="button button-outline" type="button">청첩장 주소 복사 <span aria-hidden="true">＋</span></button></div><a href="#home" class="back-top">맨 위로 ↑</a><p class="footer-date" data-date-numeric>2027. 01. 09.</p></footer>
+    <footer class="section closing" id="share"><p class="closing-title">함께해 주시는 마음,<br>오래도록 기억하겠습니다.</p><p class="signature"><span data-groom>주환석</span><span class="muted">그리고</span><span data-bride>김솔</span></p><div class="share-actions"><button id="share-button" class="button button-solid" type="button">청첩장 공유하기 <span aria-hidden="true">↗</span></button><button id="copy-link" class="button button-outline" type="button">청첩장 주소 복사 <span class="copy-icon" aria-hidden="true"></span></button></div><a href="#home" class="back-top">맨 위로 ↑</a><p class="footer-date" data-date-numeric>2027. 01. 09.</p></footer>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <dialog id="contact-dialog" class="contact-dialog"><button class="dialog-close" type="button" data-close aria-label="닫기">×</button><h2>축하 연락하기</h2><div id="contact-list"></div></dialog>
+  <button id="flower-toggle" class="flower-toggle" type="button" aria-pressed="true" aria-controls="flower-effect" aria-label="안개꽃 효과 끄기" title="안개꽃 효과 끄기" hidden><img src="assets/babys-breath.svg" alt="" width="24" height="24"></button>
   <dialog id="lightbox" class="lightbox" aria-label="웨딩 사진 크게 보기"><button class="dialog-close" type="button" data-close aria-label="사진 닫기">×</button><img id="lightbox-image" alt=""><div class="lightbox-controls"><button id="lightbox-prev" type="button" aria-label="이전 사진">←</button><span id="lightbox-position" aria-live="polite"></span><button id="lightbox-next" type="button" aria-label="다음 사진">→</button></div></dialog>
   <noscript><p class="noscript">주환석 · 김솔의 결혼식에 초대합니다. 2027년 1월 9일 토요일 오후 1시, 더채플앳청담 6층 채플홀. 서울 강남구 선릉로 757. 상세 안내를 보려면 JavaScript를 켜주세요.</p></noscript>
 </body>
