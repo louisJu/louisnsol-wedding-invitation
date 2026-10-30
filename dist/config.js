@@ -64,8 +64,9 @@ window.WEDDING_CONFIG = {
       ]
     }
   ],
-  // 별도 안내가 필요하면 문구를 입력하세요. 빈 문자열이면 영역을 숨깁니다.
-  notice: "",
+  // 안내 본문을 비우면 NOTICE 영역 전체를 숨깁니다.
+  noticeTitle: "화환은 정중히 사양합니다.",
+  notice: "축하의 마음만 감사히 받겠습니다.\n너른 양해 부탁드립니다.",
   // 청첩장 공유에 사용하는 공개 주소입니다.
   siteUrl: "https://solnlouis-wedding.vercel.app/",
   // 카카오톡 등에서 사용하는 공유 이미지. 표지 교체 시 함께 바꾸세요.

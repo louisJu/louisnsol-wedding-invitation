@@ -8,8 +8,10 @@
   <base href="https://map.kakao.com/">
   <title>더채플앳청담 카카오 약도</title>
   <style>
-    html, body { margin: 0; padding: 0; width: 100%; background: #f3efe7; }
+    html, body { margin: 0; padding: 0; width: 100%; overflow: hidden; background: #f3efe7; }
     .root_daum_roughmap { width: 100% !important; box-sizing: border-box; }
+    /* The invitation uses this map as a non-interactive preview with app links below. */
+    .root_daum_roughmap .wrap_btn_zoom, .root_daum_roughmap .wrap_btn_roadview { display: none !important; }
     .map-status { position: absolute; inset: 0; z-index: 10; margin: 0; padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: #f3efe7; color: #756f64; text-align: center; font: 14px/1.8 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; }
     .map-status[hidden] { display: none; }
     .map-status a { display: inline-flex; align-items: center; min-height: 48px; color: #34312c; text-underline-offset: 4px; }
@@ -40,7 +42,7 @@
         "timestamp": "1792910948433",
         "key": "3vzqh6bpdkw",
         "mapWidth": String(document.documentElement.clientWidth),
-        "mapHeight": "380"
+        "mapHeight": "240"
       }).render();
     } else {
       showMapError();

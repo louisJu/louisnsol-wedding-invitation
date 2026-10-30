@@ -200,7 +200,11 @@
     $("accounts-list").append(card);
   });
   if (!config.accounts.length) $("accounts-list").append(element("p", "계좌 안내를 준비하고 있습니다.", "account-empty"));
-  if (config.notice) { $("notice-section").hidden = false; $("notice-text").textContent = config.notice; }
+  if (config.notice) {
+    $("notice-section").hidden = false;
+    $("notice-title").textContent = config.noticeTitle || "안내 말씀";
+    $("notice-text").textContent = config.notice;
+  }
 
   let galleryIndex = 0;
   const photos = config.gallery;

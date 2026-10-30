@@ -78,7 +78,7 @@
     ".gallery > h2", ".gallery-grid > *",
     ".location > h2", ".transport-item",
     ".accounts > h2", ".accounts > .section-subtitle", ".account-group",
-    ".notice > p", ".closing-title", ".closing > .signature"
+    ".notice > h2", ".notice > .section-subtitle", ".closing-title", ".closing > .signature"
   ];
   const targets = [...document.querySelectorAll(selectors.join(","))]
     .filter((element) => !element.closest("[hidden]") || element.matches(".gallery-item"));
