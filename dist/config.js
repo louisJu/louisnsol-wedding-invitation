@@ -10,21 +10,24 @@ window.WEDDING_CONFIG = {
     "사람이 온다는 건\n실은 어마어마한 일이다.\n그는 그의 과거와 현재와\n그리고 그의 미래와 함께 오기 때문이다.\n한 사람의 일생이 오기 때문이다."
   ],
   invitationSource: "정현종, 「방문객」\n시집 『광휘의 속삭임』",
-  cover: {"src": "assets/optimized/cover.webp", "originalSrc": "assets/main/03_LYH00763_선수정-1.jpg", "width": 1200, "height": 1800, "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진", "position": "center"},
+  cover: {"src": "assets/optimized/main-web.webp", "originalSrc": "assets/main/03_LYH00763_선수정-1.jpg", "width": 1200, "height": 1800, "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진", "position": "center"},
   // 새 메인 사진은 assets/main/, 갤러리 사진은 assets/gallery/에 원본 그대로 보관합니다.
-  // originalSrc는 원본, src는 확대용 WebP, thumbnailSrc는 목록용 WebP입니다.
+  // originalSrc는 원본, *-web.webp는 웹 표시·확대용, *-thumb.webp는 목록용입니다.
   // 사진 교체 후 npm run images:optimize && npm run prepare:pages를 실행합니다.
   // thumbnailSrc가 없으면 기존처럼 src를 목록에서도 사용합니다.
+  // 배열 순서대로 표시합니다. 2번째는 메인 사진, 6번째는 LYH00666 사진, 7번째는 LYH03499 사진입니다.
   gallery: [
-    {"src": "assets/optimized/gallery/01.webp", "thumbnailSrc": "assets/optimized/gallery/01-thumb.webp", "originalSrc": "assets/gallery/01_LYH00441_기본액자_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 1"},
-    {"src": "assets/optimized/gallery/02.webp", "thumbnailSrc": "assets/optimized/gallery/02-thumb.webp", "originalSrc": "assets/gallery/02_LYH00666_bw_선수정-1(흑백).jpg", "alt": "주환석과 김솔의 웨딩 사진 2"},
-    {"src": "assets/optimized/gallery/03.webp", "thumbnailSrc": "assets/optimized/gallery/03-thumb.webp", "originalSrc": "assets/gallery/04_LYH00960_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 3"},
-    {"src": "assets/optimized/gallery/04.webp", "thumbnailSrc": "assets/optimized/gallery/04-thumb.webp", "originalSrc": "assets/gallery/05_LYH03216_bw_선수정-1(흑백).jpg", "alt": "주환석과 김솔의 웨딩 사진 4"},
-    {"src": "assets/optimized/gallery/05.webp", "thumbnailSrc": "assets/optimized/gallery/05-thumb.webp", "originalSrc": "assets/gallery/06_LYH03261_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 5"},
-    {"src": "assets/optimized/gallery/06.webp", "thumbnailSrc": "assets/optimized/gallery/06-thumb.webp", "originalSrc": "assets/gallery/07_LYH03513_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 6"},
-    {"src": "assets/optimized/gallery/07.webp", "thumbnailSrc": "assets/optimized/gallery/07-thumb.webp", "originalSrc": "assets/gallery/08_LYH03817_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 7"},
-    {"src": "assets/optimized/gallery/08.webp", "thumbnailSrc": "assets/optimized/gallery/08-thumb.webp", "originalSrc": "assets/gallery/09_LYH03874_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 8"},
-    {"src": "assets/optimized/gallery/09.webp", "thumbnailSrc": "assets/optimized/gallery/09-thumb.webp", "originalSrc": "assets/gallery/10_LYH00366_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 9"}
+    {"src": "assets/optimized/gallery/gallery-01-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-01-thumb.webp", "originalSrc": "assets/gallery/01_LYH00441_기본액자_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 1"},
+    {"src": "assets/optimized/main-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-02-thumb.webp", "originalSrc": "assets/main/03_LYH00763_선수정-1.jpg", "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진"},
+    {"src": "assets/optimized/gallery/gallery-03-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-03-thumb.webp", "originalSrc": "assets/gallery/04_LYH00960_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 3"},
+    {"src": "assets/optimized/gallery/gallery-04-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-04-thumb.webp", "originalSrc": "assets/gallery/06_LYH03261_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 4"},
+    {"src": "assets/optimized/gallery/gallery-05-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-05-thumb.webp", "originalSrc": "assets/gallery/05_LYH03216_bw_선수정-1(흑백).jpg", "alt": "주환석과 김솔의 웨딩 사진 5"},
+    {"src": "assets/optimized/gallery/gallery-06-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-06-thumb.webp", "originalSrc": "assets/gallery/02_LYH00666_bw_선수정-1(흑백).jpg", "alt": "주환석과 김솔의 웨딩 사진 6"},
+    {"src": "assets/optimized/gallery/gallery-07-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-07-thumb.webp", "originalSrc": "assets/gallery/LYH03499_수정_솔_1.jpg", "alt": "계단에서 함께 웃으며 바라보는 주환석과 김솔의 흑백 웨딩 사진"},
+    {"src": "assets/optimized/gallery/gallery-08-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-08-thumb.webp", "originalSrc": "assets/gallery/07_LYH03513_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 8"},
+    {"src": "assets/optimized/gallery/gallery-09-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-09-thumb.webp", "originalSrc": "assets/gallery/08_LYH03817_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 9"},
+    {"src": "assets/optimized/gallery/gallery-10-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-10-thumb.webp", "originalSrc": "assets/gallery/09_LYH03874_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 10"},
+    {"src": "assets/optimized/gallery/gallery-11-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-11-thumb.webp", "originalSrc": "assets/gallery/10_LYH00366_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 11"}
   ],
   venue: {
     name: "더채플앳청담",
@@ -70,7 +73,7 @@ window.WEDDING_CONFIG = {
   // 청첩장 공유에 사용하는 공개 주소입니다.
   siteUrl: "https://solnlouis-wedding.vercel.app/",
   // 카카오톡 등에서 사용하는 공유 이미지. 표지 교체 시 함께 바꾸세요.
-  shareImage: "assets/optimized/share.png",
+  shareImage: "assets/optimized/main-share.png",
   // 비우면 이름·날짜·장소에서 자동 생성합니다.
   shareDescription: ""
 };
