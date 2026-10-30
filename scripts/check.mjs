@@ -7,7 +7,7 @@ assert(config.date.endsWith("+09:00") && Number.isFinite(Date.parse(config.date)
 assert(config.venue.name && config.venue.hall && config.venue.address, "예식장 정보를 확인하세요.");
 assert(Number.isFinite(config.venue.latitude) && Number.isFinite(config.venue.longitude), "지도 좌표를 확인하세요.");
 assert(config.invitation.length > 0, "초대 문구를 입력하세요.");
-for (const src of [config.cover.src, config.shareImage, ...config.gallery.map((photo) => photo.src)].filter(Boolean)) {
+for (const src of [config.cover.src, config.cover.originalSrc, config.shareImage, ...config.gallery.flatMap((photo) => [photo.src, photo.thumbnailSrc, photo.originalSrc])].filter(Boolean)) {
   assert(!src.startsWith("/"), "사진 경로 앞에 /를 붙이지 마세요. GitHub 하위 경로에서 깨집니다.");
   if (!src.startsWith("https://")) await access(new URL(src, dist));
 }

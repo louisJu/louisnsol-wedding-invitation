@@ -25,13 +25,16 @@
   fill("[data-bride]", config.bride.name);
   fill("[data-venue]", config.venue.name);
   fill("[data-hall]", config.venue.hall);
-  $("hero-year").textContent = year;
   $("hero-date").textContent = dateText;
   $("hero-time").textContent = timeText;
   $("ceremony-date").append(element("span", dateText), element("strong", timeText));
   fill("[data-date-numeric]", `${year}. ${String(month).padStart(2, "0")}. ${String(day).padStart(2, "0")}.`);
   $("cover-image").src = config.cover.src;
   $("cover-image").alt = config.cover.alt;
+  if (config.cover.width && config.cover.height) {
+    $("cover-image").width = config.cover.width;
+    $("cover-image").height = config.cover.height;
+  }
   $("cover-image").style.objectPosition = config.cover.position || "center";
   config.invitation.forEach((paragraph) => {
     const p = element("p", paragraph);
@@ -165,6 +168,7 @@
 
   function accountRow(person) {
     const row = element("div", undefined, "account-person"), info = element("div", person.name);
+    if (person.relation) info.append(element("span", ` (${person.relation})`, "account-relation"));
     info.append(element("small", `${person.bank} ${person.number}`));
     const button = element("button", "복사"); button.type = "button";
     button.setAttribute("aria-label", `${person.name} 님 계좌번호 복사`);
@@ -195,6 +199,7 @@
 
   let galleryIndex = 0;
   const photos = config.gallery;
+  const galleryPreviewCount = 9;
   function showPhoto(index) {
     galleryIndex = (index + photos.length) % photos.length;
     $("lightbox-image").src = photos[galleryIndex].src; $("lightbox-image").alt = photos[galleryIndex].alt;
@@ -202,16 +207,50 @@
     if (!$("lightbox").open) openDialog($("lightbox"));
   }
   if (photos.length) {
-    photos.slice(0, 9).forEach((photo, index) => {
+    photos.forEach((photo, index) => {
       const button = element("button", undefined, "gallery-item"); button.type = "button";
+      button.hidden = index >= galleryPreviewCount;
       button.setAttribute("aria-label", `사진 ${index + 1} 크게 보기`);
-      const img = element("img"); img.src = photo.src; img.alt = photo.alt; img.loading = "lazy"; img.decoding = "async";
+      const img = element("img"); img.loading = "lazy"; img.decoding = "async";
+      const thumbnail = photo.thumbnailSrc || photo.src;
+      if (button.hidden) img.dataset.src = thumbnail;
+      else img.src = thumbnail;
+      img.alt = photo.alt;
       button.append(img); button.addEventListener("click", () => showPhoto(index)); $("gallery-grid").append(button);
     });
+    if (photos.length > galleryPreviewCount) {
+      const toggle = $("gallery-toggle");
+      const extraPhotos = [...$("gallery-grid").children].slice(galleryPreviewCount);
+      toggle.hidden = false;
+      toggle.addEventListener("click", () => {
+        const expanded = toggle.getAttribute("aria-expanded") !== "true";
+        const previousTop = toggle.getBoundingClientRect().top;
+        extraPhotos.forEach((button) => {
+          button.hidden = !expanded;
+          const img = button.querySelector("img");
+          if (expanded && img.dataset.src) {
+            img.src = img.dataset.src;
+            delete img.dataset.src;
+          }
+        });
+        toggle.setAttribute("aria-expanded", String(expanded));
+        toggle.replaceChildren(expanded ? "사진 접기 " : "사진 더보기 ");
+        const icon = element("span", expanded ? "−" : "＋");
+        icon.setAttribute("aria-hidden", "true");
+        toggle.append(icon);
+        if (!expanded) {
+          // Keep the collapse control in place instead of jumping into the following section.
+          toggle.focus({ preventScroll: true });
+          requestAnimationFrame(() => {
+            window.scrollBy({ top: toggle.getBoundingClientRect().top - previousTop, behavior: "instant" });
+          });
+        }
+      });
+    }
     $("lightbox-prev").addEventListener("click", () => showPhoto(galleryIndex - 1)); $("lightbox-next").addEventListener("click", () => showPhoto(galleryIndex + 1));
     $("lightbox").addEventListener("keydown", (event) => { if (event.key === "ArrowLeft") { event.preventDefault(); showPhoto(galleryIndex - 1); } if (event.key === "ArrowRight") { event.preventDefault(); showPhoto(galleryIndex + 1); } });
   } else {
-    for (let index = 0; index < 9; index++) {
+    for (let index = 0; index < galleryPreviewCount; index++) {
       const tile = element("div", undefined, "gallery-placeholder");
       tile.setAttribute("aria-hidden", "true");
       tile.append(element("span", String(index + 1).padStart(2, "0")));

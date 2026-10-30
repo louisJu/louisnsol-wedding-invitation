@@ -5,7 +5,7 @@
   if (reducedMotion.matches || !("IntersectionObserver" in window)) return;
 
   const selectors = [
-    ".intro > h2", ".intro-rule", ".invitation-copy > p", ".invitation-source", ".intro > .signature", ".families",
+    ".hero-handwriting", ".intro > h2", ".intro-rule", ".invitation-copy > p", ".invitation-source", ".families",
     ".wedding-day > h2", ".date-line", ".calendar", ".countdown", ".countdown-caption",
     ".gallery > h2", ".gallery-grid > *",
     ".location > h2", ".transport-item",
@@ -13,13 +13,14 @@
     ".notice > p", ".closing-title", ".closing > .signature"
   ];
   const targets = [...document.querySelectorAll(selectors.join(","))]
-    .filter((element) => !element.closest("[hidden]"));
+    .filter((element) => !element.closest("[hidden]") || element.matches(".gallery-item"));
   const pending = new Set();
+  const revealThreshold = 0.12;
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting) reveal(entry.target);
+      if (entry.isIntersecting && entry.intersectionRatio >= revealThreshold) reveal(entry.target);
     });
-  }, { threshold: 0.01 });
+  }, { threshold: revealThreshold, rootMargin: "0px 0px -64px 0px" });
 
   function reveal(element, immediate = false) {
     if (immediate) element.classList.add("reveal-immediate");
@@ -32,12 +33,14 @@
     observer.disconnect();
   }
 
+  // Observe collapsed photos too; they become visible only after the gallery is expanded.
   // Do not hide anything already visible, including direct links and restored scroll positions.
-  const belowScreen = targets.filter((element) => element.getBoundingClientRect().top >= window.innerHeight);
+  const belowScreen = targets.filter((element) => element.hidden || element.getBoundingClientRect().top >= window.innerHeight);
   belowScreen.forEach((element) => {
     if (element.parentElement.id === "gallery-grid") {
-      const column = [...element.parentElement.children].indexOf(element) % 3;
-      element.style.setProperty("--reveal-delay", `${column * 80}ms`);
+      const index = [...element.parentElement.children].indexOf(element);
+      const column = index % 3, row = Math.min(Math.floor(index / 3), 2);
+      element.style.setProperty("--reveal-delay", `${column * 160 + row * 80}ms`);
     }
     pending.add(element);
     element.classList.add("scroll-reveal");

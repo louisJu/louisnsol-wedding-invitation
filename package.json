@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node scripts/serve.mjs",
     "check": "node --check dist/config.js && node --check dist/app.js && node --check dist/motion.js && node scripts/check.mjs",
-    "prepare:pages": "node scripts/prepare-pages.mjs"
+    "prepare:pages": "node scripts/prepare-pages.mjs",
+    "images:optimize": "node scripts/optimize-images.mjs",
+    "images:lossless": "node scripts/optimize-images.mjs --originals"
   },
   "engines": { "node": ">=20" }
 }

@@ -10,6 +10,9 @@ const timeText = `${hour < 12 ? "오전" : "오후"} ${hour % 12 || 12}시${minu
 const description = config.shareDescription || `${title}. ${dateText} ${timeText}, ${config.venue.name} ${config.venue.hall}.`;
 const pageUrl = process.env.PAGE_URL || config.siteUrl;
 let html = await readFile(new URL("index.html", dist), "utf8");
+// Keep the early HTML request in sync with config, before app.js executes.
+const coverDimensions = config.cover.width && config.cover.height ? ` width="${escape(config.cover.width)}" height="${escape(config.cover.height)}"` : "";
+html = html.replace(/<img\b[^>]*\bid="cover-image"[^>]*>/, `<img id="cover-image" class="hero-image" src="${escape(config.cover.src)}" alt="${escape(config.cover.alt)}" fetchpriority="high"${coverDimensions}>`);
 html = html.replace(/<title>.*?<\/title>/, `<title>${escape(title)}</title>`);
 for (const [attribute, key, value] of [["name", "description", description], ["property", "og:title", title], ["property", "og:description", description], ["property", "og:url", pageUrl]]) {
   html = html.replace(new RegExp(`<meta ${attribute}="${key}" content="[^"]*">`), `<meta ${attribute}="${key}" content="${escape(value)}">`);

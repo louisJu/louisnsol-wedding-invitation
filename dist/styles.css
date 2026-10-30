@@ -1,5 +1,13 @@
 @charset "UTF-8";
 
+@font-face {
+  font-family: "Wedding Handwriting";
+  src: url("assets/fonts/nanum-brush-script-wedding.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   --paper: #faf9f5;
   --surface: #f3efe7;
@@ -31,20 +39,25 @@ img { display: block; max-width: 100%; }
 .skip-link { position: fixed; z-index: 100; top: 12px; left: 12px; background: var(--paper); padding: 12px 16px; transform: translateY(-200%); }
 .skip-link:focus { transform: none; }
 
-/* Keep the photograph undimmed; ceremony details sit on paper below it. */
+/* The photograph leads into a separate paper invitation below it. */
 .hero { background: var(--paper); }
-.hero-portrait { position: relative; width: 100%; height: 100vh; height: 100svh; min-height: 480px; overflow: hidden; }
+.hero-portrait { width: 100%; height: 80vh; height: 80svh; min-height: 320px; overflow: hidden; }
 .hero-image { width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
-.hero-top { position: absolute; top: max(26px, env(safe-area-inset-top)); left: 28px; right: 28px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: 1.8px; }
-.hero-top span:last-child { font-variant-numeric: tabular-nums; font-size: 12px; }
-.hero h1 { position: absolute; bottom: max(58px, calc(env(safe-area-inset-bottom) + 34px)); left: 0; right: 0; display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 23px; font-family: var(--serif); font-size: 34px; line-height: 1.5; letter-spacing: 2px; font-weight: 400; white-space: nowrap; }
-.hero .name-divider { font-family: var(--sans); font-size: 18px; letter-spacing: 0; opacity: .75; }
+.hero h1 { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 8px; font: 400 28px/1.5 var(--serif); letter-spacing: 2px; white-space: nowrap; }
+.hero .name-divider { font-family: var(--sans); font-size: 14px; letter-spacing: 0; color: var(--muted); }
 .hero-content { display: flex; flex-direction: column; align-items: center; padding: 36px 30px 40px; text-align: center; }
-.hero-details { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.hero-date { font-size: 16px; font-weight: 500; letter-spacing: .2px; }
-.hero-time { font-size: 19px; font-weight: 500; }
-.hero-venue { font-size: 14px; line-height: 1.8; margin-top: 10px; }
-.hero-venue strong { display: block; font-size: 15px; font-weight: 500; }
+.hero-handwriting { margin-bottom: 26px; color: var(--accent); font: 400 30px/1.4 "Wedding Handwriting", var(--serif); letter-spacing: .02em; }
+.hero-handwriting > span { display: inline-block; padding: .08em .15em; transform: rotate(-2deg); }
+.hero-handwriting.scroll-reveal.is-visible:not(.reveal-immediate) > span { animation: handwriting-reveal 1.8s cubic-bezier(.22, .61, .36, 1) .15s both; }
+@keyframes handwriting-reveal {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.hero-details { display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--muted); }
+.hero-date { font-size: 15px; letter-spacing: .2px; }
+.hero-time { font-size: 15px; }
+.hero-venue { font-size: 14px; line-height: 1.8; margin-top: 12px; }
+.hero-venue strong { display: block; font-size: 14px; font-weight: 400; }
 
 /* Controls share a clear 48px minimum touch target. */
 .button { min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; border: 1px solid transparent; border-radius: var(--radius); font-size: 14px; font-weight: 500; padding: 0 18px; transition: background .18s, border-color .18s; }
@@ -57,8 +70,6 @@ img { display: block; max-width: 100%; }
 .hero-directions { max-width: 264px; margin: 24px auto 0; justify-content: flex-start; border-color: #c9c0b3; background: transparent; }
 .hero-directions:hover, .hero-directions:active { background: #eae3d8; }
 .hero-directions svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.4; }
-.scroll-hint { position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; letter-spacing: .2px; }
-.scroll-hint span { font-size: 14px; line-height: 1; }
 .text-button { display: inline-flex; align-items: center; justify-content: center; gap: 18px; min-height: 48px; padding: 0 18px; margin-top: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: transparent; font-size: 13px; }
 
 .section { padding: 76px 32px; text-align: center; }
@@ -93,7 +104,7 @@ img { display: block; max-width: 100%; }
 .countdown small { font-size: 11px; color: var(--muted); }
 .countdown-caption { font-size: 13px; margin-top: 18px; color: var(--accent); }
 
-/* Nine thumbnails remain visible; the lightbox browses the complete album. */
+/* Show nine thumbnails first; longer albums can be expanded in place. */
 .gallery { text-align: left; padding-left: 26px; padding-right: 26px; }
 .gallery h2 { padding-left: 6px; }
 .gallery-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 26px; }
@@ -103,6 +114,7 @@ img { display: block; max-width: 100%; }
 .gallery-placeholder:nth-child(3n + 2) { background: #e7e1d6; }
 .gallery-placeholder:nth-child(3n) { background: #f0ece4; }
 .gallery-placeholder span { font: 400 18px/1.5 Georgia, serif; }
+.gallery-toggle { display: flex; width: 100%; max-width: 264px; margin: 24px auto 0; }
 
 .location { text-align: left; background: var(--surface); outline: none; }
 .location-name { display: flex; flex-direction: column; gap: 2px; margin-top: 26px; font-size: 18px; font-weight: 500; }
@@ -133,6 +145,7 @@ img { display: block; max-width: 100%; }
 .account-toggle { margin-left: auto; font-size: 11px; color: var(--muted); }
 .account-person { margin: 0 20px; padding: 18px 0 20px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 15px; }
 .account-person > div { min-width: 0; overflow-wrap: anywhere; }
+.account-relation { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .account-person + .account-person, .account-group details .account-person { border-top: 1px solid var(--line); }
 .account-person small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
 .account-person .account-placeholder { font-size: 11px; color: var(--muted); margin-top: 6px; }
@@ -163,12 +176,14 @@ dialog::backdrop { background: #211b15b3; }
 .noscript { background: var(--paper); padding: 30px; max-width: 480px; margin: auto; }
 
 /* Enabled only by motion.js, once content below the first screen is observed. */
-.scroll-reveal { opacity: 0; transform: translateY(18px); transition: opacity 700ms ease, transform 700ms cubic-bezier(.22, 1, .36, 1); transition-delay: var(--reveal-delay, 0ms); }
+.scroll-reveal { opacity: 0; transform: translateY(var(--reveal-distance, 48px)) scale(var(--reveal-scale, 1)); transition: opacity 950ms ease, transform 1100ms cubic-bezier(.22, .61, .36, 1); transition-delay: var(--reveal-delay, 0ms); }
+.gallery-grid > .scroll-reveal { --reveal-distance: 60px; --reveal-scale: .94; }
 .scroll-reveal:not(.is-visible) { pointer-events: none; }
 .scroll-reveal.is-visible { opacity: 1; transform: none; }
 .scroll-reveal.reveal-immediate { transition: none; }
 @media print {
   .scroll-reveal { opacity: 1; transform: none; transition: none; }
+  .hero-handwriting > span { animation: none !important; }
 }
 
 @media (hover: hover) {
@@ -183,10 +198,8 @@ dialog::backdrop { background: #211b15b3; }
   .desktop-note i { font-size: 12px; font-style: normal; letter-spacing: 1.5px; }
 }
 @media (max-width: 360px) {
-  .hero-top { left: 24px; right: 24px; }
   .hero-content { padding-left: 24px; padding-right: 24px; }
-  .hero h1 { font-size: 30px; gap: 18px; }
-  .hero-date { font-size: 15px; }
+  .hero h1 { font-size: 26px; gap: 18px; }
   .section { padding-left: 24px; padding-right: 24px; }
   .section h2 { font-size: 24px; }
   .invitation-copy { font-size: 14px; }
@@ -196,13 +209,6 @@ dialog::backdrop { background: #211b15b3; }
   .account-person, .account-group h3, .accounts summary { padding-left: 0; padding-right: 0; }
   .account-group h3, .accounts summary { margin-left: 16px; margin-right: 16px; }
   .account-person { margin-left: 16px; margin-right: 16px; }
-}
-@media (max-height: 700px) {
-  .hero h1 { font-size: 30px; gap: 18px; }
-  .hero-top { left: 24px; right: 24px; font-size: 10px; letter-spacing: 1px; }
-}
-@media (max-height: 600px) {
-  .hero h1 { font-size: 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
