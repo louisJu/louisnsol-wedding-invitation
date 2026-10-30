@@ -51,12 +51,9 @@
     parents.forEach((person) => {
       const row = element("p", undefined, "family-row");
       row.append(element("span", `${[person.father, person.mother].filter(Boolean).join(" · ")} `, "family-parents"));
-      row.append(element("span", `의 ${person.relation} `, "family-relation"));
-      const child = element("strong", undefined, "family-child");
-      [...person.name].forEach((character) => {
-        const letter = element("span", character);
-        child.append(letter);
-      });
+      row.append(element("span", "의 ", "family-possessive"));
+      row.append(element("span", `${person.relation} `, "family-relation"));
+      const child = element("strong", person.givenName || person.name, "family-child");
       row.append(child);
       $("families").append(row);
     });

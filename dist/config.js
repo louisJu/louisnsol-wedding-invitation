@@ -2,8 +2,8 @@
 // 사진 경로는 dist/ 기준이며 앞에 /를 붙이지 않습니다.
 // 이 파일의 내용은 배포 후 누구나 읽을 수 있습니다. 비밀키를 넣지 마세요.
 window.WEDDING_CONFIG = {
-  groom: { name: "주환석", father: "주규천", mother: "김혜숙", relation: "아들", phone: "" },
-  bride: { name: "김솔", father: "김천석", mother: "이금주", relation: "딸", phone: "" },
+  groom: { name: "주환석", givenName: "환석", father: "주규천", mother: "김혜숙", relation: "아들", phone: "" },
+  bride: { name: "김솔", givenName: "솔", father: "김천석", mother: "이금주", relation: "딸", phone: "" },
   date: "2027-01-09T13:00:00+09:00",
   durationMinutes: 90,
   invitation: [
