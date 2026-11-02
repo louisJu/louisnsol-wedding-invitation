@@ -150,48 +150,11 @@
   $("tmap").href = `tmap://route?goalname=${encodeURIComponent(venueName)}&goalx=${lng}&goaly=${lat}`;
   $("tmap").setAttribute("aria-label", "티맵 앱으로 길찾기");
 
-  function openMapInNewWindow(url) {
-    let mapWindow;
-    try {
-      // Acquire a separate window before sending it to a map or an app scheme.
-      // Never fall back to replacing the invitation when popups are blocked.
-      mapWindow = window.open("about:blank", "_blank");
-      if (!mapWindow || mapWindow === window || mapWindow.closed) return false;
-      mapWindow.opener = null;
-      const mapDocument = mapWindow.document;
-      mapDocument.documentElement.lang = "ko";
-      const viewport = mapDocument.createElement("meta");
-      viewport.name = "viewport"; viewport.content = "width=device-width, initial-scale=1";
-      const referrer = mapDocument.createElement("meta");
-      referrer.name = "referrer"; referrer.content = "no-referrer";
-      mapDocument.head.append(viewport, referrer);
-      // An app-only link can leave this tab visible after returning from the app.
-      mapDocument.title = "청첩장 · 지도 열기";
-      mapDocument.body.style.cssText = "margin:0;padding:48px 24px;background:#fafafa;color:#2e2e2d;text-align:center;font:15px/1.8 sans-serif";
-      const message = mapDocument.createElement("p");
-      message.textContent = "지도 확인을 마치셨다면 청첩장으로 돌아가 주세요.";
-      const back = mapDocument.createElement("button");
-      back.type = "button"; back.textContent = "청첩장으로 돌아가기";
-      back.style.cssText = "min-height:48px;padding:0 24px;border:1px solid #ccccca;border-radius:8px;background:#fafafa;color:#2e2e2d;font:inherit;cursor:pointer";
-      back.addEventListener("click", () => mapWindow.close());
-      mapDocument.body.append(message, back);
-      mapWindow.location.replace(url);
-      return true;
-    } catch {
-      if (mapWindow && mapWindow !== window) {
-        try { mapWindow.close(); } catch { /* The browser may have already detached the window. */ }
-      }
-      return false;
-    }
-  }
-  ["naver-map", "kakao-map", "tmap", "map-confirm"].forEach((id) => $(id).addEventListener("click", (event) => {
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    event.preventDefault();
-    if ($("map-dialog").open) $("map-dialog").close();
-    if (!openMapInNewWindow(event.currentTarget.href)) {
-      toast("지도를 새 창으로 열 수 없어요. 외부 브라우저에서 다시 시도해 주세요.");
-    }
-  }));
+  // Keep the anchor's native navigation: Safari must receive the destination
+  // directly from the user's tap, without a blank popup or scripted redirect.
+  $("map-confirm").addEventListener("click", () => {
+    setTimeout(() => { if ($("map-dialog").open) $("map-dialog").close(); }, 0);
+  });
   config.venue.transport.forEach((item) => {
     const row = element("article", undefined, "transport-item");
     const heading = element("h3");
@@ -254,23 +217,87 @@
   const photos = config.gallery;
   const galleryPreviewCount = 9;
   const lightbox = $("lightbox"), photoStage = $("lightbox-stage");
-  const photoPointers = new Set();
-  let photoSwipe = null;
-  function resetPhotoSwipe() {
-    const pointerId = photoSwipe?.id;
-    photoSwipe = null;
+  const photoSlides = [];
+  const photoMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let photoDrag = null, photoTouchCount = 0, photoSettleTimer;
+  const photoIndexAt = (page) => (page - 1 + photos.length) % photos.length;
+  const photoPageAt = () => Math.max(0, Math.min(photoSlides.length - 1, Math.round(photoStage.scrollLeft / photoStage.clientWidth)));
+  const photoZoomed = () => (window.visualViewport?.scale || 1) > 1;
+  function preparePhotoPages(page) {
+    // Only the current picture and its neighbours need the large WebP files.
+    for (let slot = Math.max(0, page - 1); slot <= Math.min(photoSlides.length - 1, page + 1); slot++) {
+      const { slide, image, index } = photoSlides[slot];
+      if (image.hasAttribute("src")) continue;
+      const photo = photos[index];
+      if (photo.thumbnailSrc) slide.style.backgroundImage = `url("${photo.thumbnailSrc}")`;
+      image.src = photo.src;
+    }
+  }
+  function selectPhotoPage(page) {
+    galleryIndex = photoIndexAt(page);
+    photoSlides.forEach(({ slide, image }, slot) => {
+      slide.setAttribute("aria-hidden", String(slot !== page));
+      if (slot === page) image.id = "lightbox-image";
+      else image.removeAttribute("id");
+    });
+    $("lightbox-position").textContent = `${galleryIndex + 1} / ${photos.length}`;
+  }
+  function releasePhotoDrag() {
+    const pointerId = photoDrag?.id;
+    photoDrag = null;
     photoStage.classList.remove("is-dragging");
-    photoStage.style.removeProperty("--swipe-offset");
     if (pointerId !== undefined && photoStage.hasPointerCapture(pointerId)) photoStage.releasePointerCapture(pointerId);
   }
+  function settlePhotoPages() {
+    clearTimeout(photoSettleTimer);
+    if (!lightbox.open || photoDrag || photoTouchCount || photoZoomed() || !photoStage.clientWidth) return;
+    let page = photoPageAt();
+    // A new gesture can interrupt a scripted scroll. Finish at the nearest page
+    // once scrolling has stopped, instead of leaving two half-visible pictures.
+    if (Math.abs(photoStage.scrollLeft - page * photoStage.clientWidth) > 1) {
+      moveToPhotoPage(page); return;
+    }
+    photoStage.classList.remove("is-settling");
+    // Identical end copies make the last/first transition continuous.
+    if (page === 0 || page === photos.length + 1) {
+      page = page === 0 ? photos.length : 1;
+      preparePhotoPages(page);
+      photoStage.scrollTo({ left: page * photoStage.clientWidth, behavior: "instant" });
+    }
+    selectPhotoPage(page);
+    preparePhotoPages(page);
+  }
+  function queuePhotoSettle() {
+    clearTimeout(photoSettleTimer);
+    photoSettleTimer = setTimeout(settlePhotoPages, 160);
+  }
+  function moveToPhotoPage(page, smooth = true) {
+    const target = Math.max(0, Math.min(photoSlides.length - 1, page));
+    preparePhotoPages(target);
+    photoStage.classList.add("is-settling");
+    photoStage.scrollTo({ left: target * photoStage.clientWidth, behavior: smooth && !photoMotion.matches ? "smooth" : "instant" });
+    queuePhotoSettle();
+  }
   function showPhoto(index) {
-    resetPhotoSwipe();
-    galleryIndex = (index + photos.length) % photos.length;
-    $("lightbox-image").src = photos[galleryIndex].src; $("lightbox-image").alt = photos[galleryIndex].alt;
-    $("lightbox-position").textContent = `${galleryIndex + 1} / ${photos.length}`;
-    if (!$("lightbox").open) openDialog($("lightbox"));
+    releasePhotoDrag();
+    clearTimeout(photoSettleTimer);
+    const page = (index + photos.length) % photos.length + 1;
+    if (!lightbox.open) openDialog(lightbox);
+    moveToPhotoPage(page, false);
+    selectPhotoPage(page);
   }
   if (photos.length) {
+    // Native horizontal scrolling gives touch input its own momentum and snap.
+    for (let page = 0; page < photos.length + 2; page++) {
+      const index = photoIndexAt(page);
+      const slide = element("div", undefined, "lightbox-slide");
+      slide.setAttribute("aria-hidden", "true");
+      const image = element("img");
+      image.alt = photos[index].alt; image.draggable = false; image.decoding = "async";
+      image.addEventListener("load", () => { slide.style.backgroundImage = ""; });
+      slide.append(image); photoStage.append(slide);
+      photoSlides.push({ slide, image, index });
+    }
     photos.forEach((photo, index) => {
       const button = element("button", undefined, "gallery-item"); button.type = "button";
       button.hidden = index >= galleryPreviewCount;
@@ -311,53 +338,93 @@
         }
       });
     }
-    $("lightbox-prev").addEventListener("click", () => showPhoto(galleryIndex - 1)); $("lightbox-next").addEventListener("click", () => showPhoto(galleryIndex + 1));
-    lightbox.addEventListener("keydown", (event) => { if (event.key === "ArrowLeft") { event.preventDefault(); showPhoto(galleryIndex - 1); } if (event.key === "ArrowRight") { event.preventDefault(); showPhoto(galleryIndex + 1); } });
-    photoStage.addEventListener("pointerdown", (event) => {
-      if (!lightbox.open || photos.length < 2 || event.button !== 0) return;
-      photoPointers.add(event.pointerId);
-      // Leave multi-touch and zoomed-image panning to the browser.
-      if (photoPointers.size !== 1 || !event.isPrimary || (window.visualViewport?.scale || 1) > 1) {
-        resetPhotoSwipe();
-        return;
+    const turnPhoto = (direction) => {
+      if (!lightbox.open || photoZoomed() || photos.length < 2) return;
+      releasePhotoDrag();
+      moveToPhotoPage(photoPageAt() + direction);
+    };
+    $("lightbox-prev").addEventListener("click", () => turnPhoto(-1));
+    $("lightbox-next").addEventListener("click", () => turnPhoto(1));
+    lightbox.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault(); turnPhoto(event.key === "ArrowLeft" ? -1 : 1);
       }
-      photoSwipe = { id: event.pointerId, x: event.clientX, y: event.clientY, axis: null };
+    });
+    photoStage.addEventListener("scroll", () => {
+      if (!lightbox.open || !photoStage.clientWidth) return;
+      preparePhotoPages(photoPageAt());
+      queuePhotoSettle();
+    }, { passive: true });
+    photoStage.addEventListener("scrollend", settlePhotoPages);
+    ["touchstart", "touchend", "touchcancel"].forEach((type) => photoStage.addEventListener(type, (event) => {
+      photoTouchCount = event.touches.length;
+      if (type === "touchstart") photoStage.classList.remove("is-settling");
+      if (photoTouchCount) clearTimeout(photoSettleTimer);
+      else queuePhotoSettle();
+    }, { passive: true }));
+    // Touch remains entirely native. Pointer capture is only for mouse/pen dragging.
+    photoStage.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "touch" || !lightbox.open || photos.length < 2 || event.button !== 0 || !event.isPrimary || photoZoomed()) return;
+      const left = photoStage.scrollLeft;
+      photoDrag = { id: event.pointerId, x: event.clientX, y: event.clientY, left, page: photoPageAt(), axis: null, lastX: event.clientX, lastTime: event.timeStamp, velocity: 0 };
+      clearTimeout(photoSettleTimer);
+      photoStage.classList.remove("is-settling");
+      photoStage.classList.add("is-dragging");
+      photoStage.scrollTo({ left, behavior: "instant" });
       photoStage.setPointerCapture(event.pointerId);
     });
     photoStage.addEventListener("pointermove", (event) => {
-      if (!photoSwipe || event.pointerId !== photoSwipe.id) return;
-      if ((window.visualViewport?.scale || 1) > 1) { resetPhotoSwipe(); return; }
-      const dx = event.clientX - photoSwipe.x, dy = event.clientY - photoSwipe.y;
-      if (!photoSwipe.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 10) {
-        photoSwipe.axis = Math.abs(dx) > Math.abs(dy) * 1.25 ? "x" : "y";
+      if (!photoDrag || event.pointerId !== photoDrag.id) return;
+      const dx = event.clientX - photoDrag.x, dy = event.clientY - photoDrag.y;
+      if (!photoDrag.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 8) {
+        photoDrag.axis = Math.abs(dx) > Math.abs(dy) * 1.25 ? "x" : "y";
       }
-      if (photoSwipe.axis !== "x") return;
-      photoStage.classList.add("is-dragging");
-      const limit = photoStage.clientWidth * .65;
-      photoStage.style.setProperty("--swipe-offset", `${Math.max(-limit, Math.min(limit, dx))}px`);
+      if (photoDrag.axis !== "x") return;
+      const elapsed = event.timeStamp - photoDrag.lastTime;
+      if (elapsed > 0) photoDrag.velocity = (event.clientX - photoDrag.lastX) / elapsed;
+      photoDrag.lastX = event.clientX; photoDrag.lastTime = event.timeStamp;
+      photoStage.scrollLeft = photoDrag.left - dx;
     });
     photoStage.addEventListener("pointerup", (event) => {
-      photoPointers.delete(event.pointerId);
-      if (!photoSwipe || event.pointerId !== photoSwipe.id) return;
-      const dx = event.clientX - photoSwipe.x, dy = event.clientY - photoSwipe.y;
-      const threshold = Math.max(48, Math.min(80, photoStage.clientWidth * .16));
-      const turnPage = photoSwipe.axis === "x" && Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.25 && (window.visualViewport?.scale || 1) <= 1;
-      resetPhotoSwipe();
-      if (turnPage) showPhoto(galleryIndex + (dx < 0 ? 1 : -1));
+      if (!photoDrag || event.pointerId !== photoDrag.id) return;
+      const dx = event.clientX - photoDrag.x;
+      const fast = event.timeStamp - photoDrag.lastTime < 100 && Math.abs(photoDrag.velocity) > .4 && photoDrag.velocity * dx > 0;
+      const turn = photoDrag.axis === "x" && (Math.abs(dx) > photoStage.clientWidth * .2 || (Math.abs(dx) > 24 && fast));
+      const page = photoDrag.page + (turn ? (dx < 0 ? 1 : -1) : 0);
+      // Keep snap disabled until the smooth landing has finished.
+      photoStage.classList.add("is-settling");
+      releasePhotoDrag();
+      moveToPhotoPage(page);
     });
     ["pointercancel", "lostpointercapture"].forEach((type) => photoStage.addEventListener(type, (event) => {
-      photoPointers.delete(event.pointerId);
-      if (photoSwipe?.id === event.pointerId) resetPhotoSwipe();
+      if (photoDrag?.id !== event.pointerId) return;
+      const page = photoDrag.page;
+      photoStage.classList.add("is-settling");
+      releasePhotoDrag(); moveToPhotoPage(page);
     }));
     const syncPhotoZoom = () => {
-      const zoomed = (window.visualViewport?.scale || 1) > 1;
+      const zoomed = photoZoomed();
       photoStage.classList.toggle("is-zoomed", zoomed);
-      if (zoomed) resetPhotoSwipe();
+      if (zoomed && lightbox.open) { releasePhotoDrag(); moveToPhotoPage(galleryIndex + 1, false); }
+      else if (lightbox.open) queuePhotoSettle();
     };
     window.visualViewport?.addEventListener("resize", syncPhotoZoom);
     syncPhotoZoom();
-    lightbox.addEventListener("close", () => { resetPhotoSwipe(); photoPointers.clear(); });
-    if (photos.length < 2) ["lightbox-prev", "lightbox-next", "lightbox-hint"].forEach((id) => { $(id).hidden = true; });
+    let photoWidth = 0;
+    new ResizeObserver(() => {
+      const width = photoStage.clientWidth;
+      if (lightbox.open && width && width !== photoWidth) {
+        photoWidth = width; releasePhotoDrag(); moveToPhotoPage(galleryIndex + 1, false);
+      }
+    }).observe(photoStage);
+    lightbox.addEventListener("close", () => {
+      clearTimeout(photoSettleTimer); releasePhotoDrag(); photoTouchCount = 0;
+      photoStage.classList.remove("is-settling");
+    });
+    if (photos.length < 2) {
+      photoStage.classList.add("is-single");
+      ["lightbox-prev", "lightbox-next", "lightbox-hint"].forEach((id) => { $(id).hidden = true; });
+    }
   } else {
     for (let index = 0; index < galleryPreviewCount; index++) {
       const tile = element("div", undefined, "gallery-placeholder");
