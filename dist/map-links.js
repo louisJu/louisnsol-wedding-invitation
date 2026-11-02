@@ -23,12 +23,13 @@
   const entry = (key, mode) => `index.html?open-map=${key}&map-mode=${mode}#location`;
   const link = (key, mode = "app") => {
     const provider = providers[key];
-    if (mode === "web" || (!isIOS && !isAndroid)) return provider.webUrl;
+    // Safari cannot suppress the system error for an uninstalled custom scheme.
+    // Use a working HTTPS destination; Android handles missing apps via Intent.
+    if (mode === "web" || !isAndroid) return provider.webUrl;
     if (isAndroid) {
       const [scheme, destination] = provider.appUrl.split("://");
       return `intent://${destination}#Intent;scheme=${scheme};package=${provider.packageName};S.browser_fallback_url=${encodeURIComponent(provider.webUrl)};end`;
     }
-    return provider.appUrl;
   };
   window.WEDDING_MAPS = { providers, link, entry, isIOS, isAndroid };
 })();

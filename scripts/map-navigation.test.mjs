@@ -73,14 +73,13 @@ function harness({ userAgent = "iPhone", maxTouchPoints = 5, visible = true, foc
   };
 }
 
-test("iOS links use a native app scheme, Android uses Intent with HTTPS fallback, desktop uses HTTPS", () => {
+test("iOS uses HTTPS without probing installed apps; Android Intent includes a web fallback", () => {
   for (const [userAgent, maxTouchPoints, platform] of [["iPhone", 5, "ios"], ["Macintosh", 5, "ios"], ["Macintosh", 0, "desktop"], ["Windows", 10, "desktop"], ["Android", 5, "android"]]) {
     const h = harness({ userAgent, maxTouchPoints }); h.run();
     const maps = h.window.WEDDING_MAPS;
     for (const key of ["naver", "kakao"]) {
       const provider = maps.providers[key], link = maps.link(key);
-      if (platform === "ios") assert.equal(link, provider.appUrl);
-      else if (platform === "desktop") assert.equal(link, provider.webUrl);
+      if (platform !== "android") assert.equal(link, provider.webUrl);
       else {
         assert.ok(link.startsWith("intent://"));
         assert.ok(link.includes(`package=${provider.packageName};`));
@@ -107,63 +106,60 @@ test("loading, focusing and restoring an ordinary invitation never launch maps a
 });
 
 for (const [id, key] of [["naver-map", "naver"], ["kakao-map", "kakao"], ["map-confirm", "kakao"]]) {
-  test(`${id}: three missing-app attempts each preserve a native click and one web fallback`, () => {
+  test(`${id}: repeated iOS clicks go straight to HTTPS with loading feedback and no app error route`, () => {
     const h = harness(); h.run();
     for (let attempt = 1; attempt <= 3; attempt += 1) {
       const event = h.click(id);
       assert.equal(event.defaultPrevented, false);
-      assert.equal(h.nativeRequests.at(-1), h.window.WEDDING_MAPS.providers[key].appUrl);
-      assert.equal(h.timers.size, 1);
-      h.tick(); h.tick();
-      assert.equal(h.webRequests.length, attempt);
-      assert.equal(h.webRequests.at(-1), h.window.WEDDING_MAPS.providers[key].webUrl);
+      assert.equal(h.nativeRequests.at(-1), h.window.WEDDING_MAPS.providers[key].webUrl);
+      assert.equal(h.document.getElementById("map-navigation-status").hidden, false);
       h.window.emit("pagehide"); h.restore(); h.focus(true); h.tick();
-      assert.equal(h.webRequests.length, attempt);
+      assert.equal(h.nativeRequests.length, attempt);
       assert.equal(h.document.getElementById("map-navigation-status").hidden, true);
     }
-    assert.equal(h.historyEntries[0], invitation);
+    assert.deepEqual(h.webRequests, []);
     assert.deepEqual(h.replacements, []);
     assert.deepEqual(h.scriptedAppRequests, []);
   });
 }
 
-test("installed-app switch cancels old work, and another tap after return starts a fresh attempt", () => {
+test("an app switch or tab change clears loading and never triggers a second navigation on return", () => {
   const h = harness(); h.run(); h.click("naver-map");
   const stale = [...h.timers.values()][0];
-  h.focus(false); h.visibility(false); h.tick(); h.visibility(true); h.focus(true); stale(); h.tick();
+  h.focus(false); h.visibility(false); h.visibility(true); h.focus(true); stale(); h.tick();
+  assert.equal(h.document.getElementById("map-navigation-status").hidden, true);
   assert.deepEqual(h.webRequests, []);
-  h.click("naver-map"); h.tick();
+  h.click("naver-map");
   assert.equal(h.nativeRequests.length, 2);
-  assert.deepEqual(h.webRequests, [h.window.WEDDING_MAPS.providers.naver.webUrl]);
+  assert.equal(h.document.getElementById("map-navigation-status").hidden, false);
 });
 
-test("changing providers invalidates even an already queued callback", () => {
+test("a stale indicator timeout cannot interrupt a newer map choice", () => {
   const h = harness(); h.run(); h.click("naver-map");
   const stale = [...h.timers.values()][0];
-  h.click("kakao-map"); stale(); assert.deepEqual(h.webRequests, []);
-  h.tick();
-  assert.deepEqual(h.webRequests, [h.window.WEDDING_MAPS.providers.kakao.webUrl]);
-  h.window.emit("pagehide"); h.restore(); h.click("naver-map"); h.tick();
-  assert.equal(h.webRequests.at(-1), h.window.WEDDING_MAPS.providers.naver.webUrl);
+  h.click("kakao-map"); stale();
+  assert.equal(h.document.getElementById("map-navigation-status").hidden, false);
+  assert.equal(h.nativeRequests.at(-1), h.window.WEDDING_MAPS.providers.kakao.webUrl);
+  assert.deepEqual(h.webRequests, []);
 });
 
-test("app prompts pause fallback and dismissing a prompt resumes a fresh delay", () => {
-  const h = harness(); h.run(); h.click("naver-map");
-  h.focus(false); h.tick(); assert.deepEqual(h.webRequests, []);
-  h.focus(true); assert.equal(h.timers.size, 1); h.tick();
-  assert.equal(h.webRequests.length, 1);
+test("cancelled navigation cannot leave an endless loading indicator or trigger a redirect", () => {
+  const h = harness(); h.run(); h.click("naver-map"); h.tick();
+  assert.equal(h.document.getElementById("map-navigation-status").hidden, true);
+  h.focus(false); h.focus(true); h.tick();
+  assert.deepEqual(h.webRequests, []);
+  assert.deepEqual(h.scriptedAppRequests, []);
 });
 
-test("page exit and cached restoration clear timers, dialog and scroll lock before the next click", () => {
+test("page exit and cached restoration clear the dialog and scroll lock before the next click", () => {
   const h = harness(); h.run(); h.click("kakao-map");
-  const stale = [...h.timers.values()][0];
   h.document.getElementById("map-dialog").open = true;
   h.document.body.style.overflow = "hidden";
-  h.window.emit("pagehide"); h.restore(); h.focus(true); stale(); h.tick();
+  h.window.emit("pagehide"); h.restore(); h.focus(true); h.tick();
   assert.equal(h.document.getElementById("map-dialog").open, false);
   assert.equal(h.document.body.style.overflow, "");
   assert.deepEqual(h.webRequests, []);
-  h.click("map-confirm"); h.tick(); assert.equal(h.webRequests.length, 1);
+  h.click("map-confirm"); assert.equal(h.nativeRequests.length, 2);
 });
 
 test("map confirmation closes the dialog synchronously without cancelling native navigation", () => {
@@ -176,7 +172,7 @@ test("map confirmation closes the dialog synchronously without cancelling native
   assert.equal(h.document.body.style.overflow, "");
 });
 
-test("opening a preview or choosing TMAP cancels another provider's pending fallback", () => {
+test("opening a preview or choosing TMAP clears stale loading feedback", () => {
   for (const id of ["map-preview", "tmap"]) {
     const h = harness(); h.run(); h.click("naver-map"); h.click(id); h.tick();
     assert.deepEqual(h.webRequests, []);
@@ -190,7 +186,7 @@ test("modified or already handled clicks do not arm automatic navigation", () =>
   }
 });
 
-test("Android and desktop rely on native navigation without a competing JavaScript timer", () => {
+test("Android and desktop rely on native navigation without a competing scripted redirect", () => {
   for (const userAgent of ["Android", "Windows"]) {
     const h = harness({ userAgent }); h.run(); h.click("naver-map"); h.tick();
     assert.equal(h.nativeRequests.length, 1);
@@ -213,7 +209,7 @@ test("legacy launch URLs use web once, remove launch parameters, and never auto-
     assert.equal(h.webRequests.length, 1);
     const cold = harness({ href: h.historyEntries[0] }); cold.run(); cold.tick();
     assert.deepEqual(cold.webRequests, []);
-    cold.click(`${key}-map`); cold.tick(); assert.equal(cold.webRequests.length, 1);
+    cold.click(`${key}-map`); cold.tick(); assert.equal(cold.webRequests.length, 0); assert.equal(cold.nativeRequests.length, 1);
   }
 });
 
@@ -245,4 +241,13 @@ test("unknown providers and query injection cannot trigger an automatic redirect
     const h = harness({ href: `https://example.test/invitation/index.html?open-map=${encodeURIComponent(key)}#location` }); h.run(); h.tick();
     assert.deepEqual(h.scriptedAppRequests, []); assert.deepEqual(h.webRequests, []); assert.deepEqual(h.replacements, []);
   }
+});
+
+
+test("loading feedback has neutral copy, a decorative spinner and reduced-motion support", async () => {
+  const css = await readFile(new URL("styles.css", dist), "utf8");
+  assert.match(html, /class="map-loading-spinner" aria-hidden="true"/);
+  assert.match(html, /지도를 불러오고 있어요/);
+  assert.doesNotMatch(html + launchSource, /앱이 열리지 않으면|앱이 없다면/);
+  assert.match(css, /prefers-reduced-motion: reduce[^}]+map-loading-spinner[^}]+animation: none/);
 });

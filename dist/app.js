@@ -143,7 +143,7 @@
   $("naver-map").href = maps.link("naver");
   $("kakao-map").href = maps.link("kakao");
   $("map-confirm").href = $("kakao-map").href;
-  const mapAction = maps.isAndroid || maps.isIOS ? "앱으로 열기" : "웹 지도로 열기";
+  const mapAction = maps.isAndroid ? "앱 또는 웹 지도로 열기" : "웹 지도로 열기";
   $("naver-map").setAttribute("aria-label", `네이버지도 ${mapAction}`);
   $("kakao-map").setAttribute("aria-label", `카카오맵 ${mapAction}`);
   $("map-confirm").setAttribute("aria-label", `확인, 카카오맵 ${mapAction}`);

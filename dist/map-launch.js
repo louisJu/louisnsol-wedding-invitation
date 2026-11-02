@@ -15,16 +15,21 @@
 
   const status = document.getElementById("map-navigation-status");
   const buttons = [["naver-map", "naver"], ["kakao-map", "kakao"], ["map-confirm", "kakao"]];
-  let timer;
+  let indicatorTimer;
   let generation = 0;
-  let pending = null;
-  const message = (text = "") => {
-    if (!status) return;
-    status.textContent = text;
-    status.hidden = !text;
+  const cancel = () => {
+    clearTimeout(indicatorTimer);
+    generation += 1;
+    if (status) status.hidden = true;
   };
-  const clearFallback = () => { clearTimeout(timer); generation += 1; };
-  const cancel = () => { clearFallback(); pending = null; message(); };
+  const showLoading = () => {
+    cancel();
+    if (status) status.hidden = false;
+    const current = generation;
+    // Release the indicator if the browser cancels a navigation. Never use a
+    // timeout to guess app installation or trigger another external redirect.
+    indicatorTimer = setTimeout(() => { if (current === generation) cancel(); }, 8000);
+  };
   const closeMapDialog = () => {
     const dialog = document.getElementById("map-dialog");
     if (dialog?.open) dialog.close();
@@ -46,39 +51,21 @@
     // Append a real history entry. Back restores this same invitation.
     window.location.assign(maps.providers[key].webUrl);
   };
-  const scheduleFallback = () => {
-    clearFallback();
-    const current = generation;
-    const key = pending;
-    timer = setTimeout(() => {
-      if (current !== generation || !key || pending !== key || document.visibilityState === "hidden" || !document.hasFocus()) return;
-      openWeb(key);
-    }, 2000);
-  };
-
   refreshLinks();
-  buttons.forEach(([id, key]) => {
+  buttons.forEach(([id]) => {
     document.getElementById(id)?.addEventListener("click", (event) => {
       // Modified clicks keep the browser's usual behavior and start no timer.
       if (event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       cancel();
       refreshLinks();
       closeMapDialog();
-      if (maps.isIOS) {
-        pending = key;
-        message("앱이 열리지 않으면 잠시 후 웹 지도로 이동합니다.");
-        scheduleFallback();
-      }
-      // The native href opens the app synchronously from this click. No popup,
-      // copied invitation, scripted app redirect, or preventDefault is needed.
+      showLoading();
+      // Follow the native HTTPS link or Android Intent immediately. A spinner
+      // accompanies the real navigation without an artificial waiting screen.
     });
   });
   document.getElementById("tmap")?.addEventListener("click", cancel);
   document.getElementById("map-preview")?.addEventListener("click", cancel);
-  window.addEventListener("blur", clearFallback);
-  window.addEventListener("focus", () => {
-    if (pending && document.visibilityState !== "hidden") scheduleFallback();
-  });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "hidden") cancel();
   });
