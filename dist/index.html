@@ -81,6 +81,14 @@
         <a id="kakao-map" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#ffe000"/><path d="M12 5a5 5 0 0 0-5 5c0 4 5 9 5 9s5-5 5-9a5 5 0 0 0-5-5Z" fill="#3a8de4"/><circle cx="12" cy="10" r="2" fill="#fff"/></svg>카카오맵</a>
         <a id="tmap" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00bfd9" d="M3 4h18v5H3Z"/><path fill="#aa57e3" d="M10 4h5v17h-5Z"/><path fill="#ff7cac" d="M3 4h12v5H3Z"/></svg>티맵</a>
       </div>
+      <div class="map-web-options" aria-label="웹 지도로 보기">
+        <span>앱이 없다면 웹 지도로 확인해 주세요.</span>
+        <div class="map-web-links">
+          <a id="naver-map-web" target="_blank" rel="noopener noreferrer" aria-label="네이버 웹 지도 새 창에서 열기">네이버지도</a>
+          <span aria-hidden="true">·</span>
+          <a id="kakao-map-web" target="_blank" rel="noopener noreferrer" aria-label="카카오 웹 지도 새 창에서 열기">카카오맵</a>
+        </div>
+      </div>
       <div class="transport-list" id="transport-list"></div>
     </section>
 
@@ -100,6 +108,10 @@
     <div class="map-dialog-actions">
       <button class="button button-outline" type="button" data-close autofocus>취소</button>
       <a id="map-confirm" class="button button-solid" target="_blank" rel="noopener noreferrer" aria-label="확인, 카카오맵 새 창에서 열기">확인</a>
+    </div>
+    <div class="map-web-options">
+      <span>앱이 없다면</span>
+      <a id="map-confirm-web" target="_blank" rel="noopener noreferrer" aria-label="카카오 웹 지도 새 창에서 열기">웹 지도로 보기</a>
     </div>
   </dialog>
   <dialog id="lightbox" class="lightbox" aria-label="웨딩 사진 크게 보기" aria-describedby="lightbox-hint">

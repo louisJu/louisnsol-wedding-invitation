@@ -139,12 +139,32 @@
   $("venue-address").textContent = config.venue.address;
   $("copy-address").addEventListener("click", () => copy(config.venue.address, "예식장 주소를 복사했어요."));
   const { latitude: lat, longitude: lng, name: venueName } = config.venue;
-  $("naver-map").href = config.venue.naverPlaceId
+  const naverMapUrl = config.venue.naverPlaceId
     ? `https://map.naver.com/p/entry/place/${encodeURIComponent(config.venue.naverPlaceId)}`
     : `https://map.naver.com/v5/search/${encodeURIComponent(venueName)}`;
   const kakaoMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(venueName)},${lat},${lng}`;
-  $("kakao-map").href = kakaoMapUrl;
-  $("map-confirm").href = kakaoMapUrl;
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+  const mobileMapLink = (appUrl, webUrl, packageName) => {
+    if (isAndroid) {
+      const [scheme, destination] = appUrl.split("://");
+      return `intent://${destination}#Intent;scheme=${scheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
+    }
+    return isIOS ? appUrl : webUrl;
+  };
+  const naverAppUrl = `nmap://place?lat=${lat}&lng=${lng}&name=${encodeURIComponent(venueName)}&appname=${encodeURIComponent(config.siteUrl)}`;
+  const kakaoAppUrl = `kakaomap://look?p=${lat},${lng}`;
+  $("naver-map").href = mobileMapLink(naverAppUrl, naverMapUrl, "com.nhn.android.nmap");
+  $("kakao-map").href = mobileMapLink(kakaoAppUrl, kakaoMapUrl, "net.daum.android.map");
+  $("map-confirm").href = $("kakao-map").href;
+  $("naver-map-web").href = naverMapUrl;
+  $("kakao-map-web").href = kakaoMapUrl;
+  $("map-confirm-web").href = kakaoMapUrl;
+  const mapAction = isAndroid || isIOS ? "앱으로 열기" : "새 창에서 열기";
+  $("naver-map").setAttribute("aria-label", `네이버지도 ${mapAction}`);
+  $("kakao-map").setAttribute("aria-label", `카카오맵 ${mapAction}`);
+  $("map-confirm").setAttribute("aria-label", `확인, 카카오맵 ${mapAction}`);
   $("map-preview").setAttribute("aria-label", `${venueName} 약도, 카카오맵 이동 확인`);
   $("map-preview").addEventListener("click", () => openDialog($("map-dialog")));
   $("tmap").href = `tmap://route?goalname=${encodeURIComponent(venueName)}&goalx=${lng}&goaly=${lat}`;
@@ -152,8 +172,12 @@
 
   // Keep the anchor's native navigation: Safari must receive the destination
   // directly from the user's tap, without a blank popup or scripted redirect.
-  $("map-confirm").addEventListener("click", () => {
-    setTimeout(() => { if ($("map-dialog").open) $("map-dialog").close(); }, 0);
+  // iOS has no reliable installed-app check. Keep an explicit web alternative
+  // instead of a timed redirect that can interrupt an app prompt or a return visit.
+  [$("map-confirm"), $("map-confirm-web")].forEach((link) => {
+    link.addEventListener("click", () => {
+      setTimeout(() => { if ($("map-dialog").open) $("map-dialog").close(); }, 0);
+    });
   });
   config.venue.transport.forEach((item) => {
     const row = element("article", undefined, "transport-item");

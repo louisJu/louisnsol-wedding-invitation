@@ -107,7 +107,11 @@ npm run images:lossless
 
 퍼가기 코드는 `dist/kakao-map.html`에 있으며 청첩장 CSS가 지도 버튼에 영향을 주지 않도록 iframe으로 분리했습니다. 코드의 `key`는 공개 약도 식별자입니다. 장소·기본 범위를 바꾸려면 카카오맵 약도 만들기에서 새 코드를 생성하고 `timestamp`와 `key`를 함께 교체하세요. 주소/전화번호·지하철·정류장·버스·메모 노출을 끈 상태로 생성했습니다. 카카오 출처를 유지하고 내부 조작 버튼은 숨깁니다. 지도 로딩 실패 시 안내 문구를 표시하며 아래 지도 앱 버튼은 계속 이용할 수 있습니다.
 
-약도를 누르면 ‘카카오맵으로 이동할까요?’ 확인창을 표시하고 ‘확인’을 누르면 카카오맵을 새 창으로 엽니다. ‘취소’·Escape·확인창 바깥 클릭은 이동 없이 창만 닫습니다. 약도 위에서 스크롤하면 페이지가 움직이며 지도 자체의 확대·축소·드래그는 계속 막습니다. 아래 네이버지도·카카오맵·티맵 버튼과 별도의 교통 안내도 유지합니다. 네이버지도는 `venue.naverPlaceId`에 지정한 장소를 엽니다. 확인창과 아래 카카오맵 버튼은 같은 예식장 위치 링크를 사용합니다.
+약도를 누르면 ‘카카오맵으로 이동할까요?’ 확인창을 표시하고 ‘확인’을 누르면 카카오맵을 엽니다. ‘취소’·Escape·확인창 바깥 클릭은 이동 없이 창만 닫습니다. 약도 위에서 스크롤하면 페이지가 움직이며 지도 자체의 확대·축소·드래그는 계속 막습니다. 아래 네이버지도·카카오맵·티맵 버튼과 별도의 교통 안내도 유지합니다. 확인창과 아래 카카오맵 버튼은 같은 예식장 위치 링크를 사용합니다.
+
+카카오·네이버 버튼은 iPhone·iPad에서 각각 `kakaomap://look`, `nmap://place`로 예식장 좌표를 앱에 전달합니다. 네이버의 필수 `appname`에는 `config.siteUrl`을 인코딩합니다. Android에서는 앱 패키지와 HTTPS 웹 지도 fallback을 포함한 Intent 링크를 사용하므로 지원 브라우저(Chrome 등)에서 앱이 없으면 웹 지도로 이어집니다. 데스크톱은 웹 지도 링크를 사용하며, 네이버 웹 지도는 `venue.naverPlaceId`의 장소를 엽니다. 티맵은 기존 `tmap://route`를 유지합니다.
+
+앱 버튼 아래에는 ‘앱이 없다면 웹 지도로 확인해 주세요.’와 네이버·카카오 웹 링크를 항상 표시하며, 약도 확인창에도 ‘웹 지도로 보기’를 제공합니다. iOS 웹에서는 앱 설치 여부를 확실히 알 수 없어 미설치 시 이 링크를 직접 선택합니다. 타이머로 웹 지도를 강제로 열지 않으므로 앱 실행 확인창을 기다리거나 청첩장으로 복귀했을 때 예상치 못한 이동이 발생하지 않습니다.
 
 지도는 실제 목적지 주소를 가진 `target="_blank" rel="noopener noreferrer"` 링크로 직접 엽니다. Safari의 링크 처리를 방해하지 않도록 클릭 기본 동작을 취소하거나 빈 팝업을 만든 뒤 주소를 바꾸는 코드는 사용하지 않습니다. 약도 확인창은 기본 링크 이동 이후에 닫습니다. 현재 청첩장을 지도 주소로 바꾸는 대체 처리는 하지 않습니다. 카카오톡 등 앱 내 브라우저의 탭 처리와 지도 앱 전환 동작은 서비스·OS 정책에 따라 달라 실제 기기에서 추가 확인이 필요합니다.
 
@@ -167,6 +171,7 @@ GitHub Pages는 정적 호스팅이므로 공유 방명록을 저장하려면 �
 - 갤러리·계좌 구성 참고: https://miseo-yoonjong-wedding.vercel.app/
 - 표지·공유 사진: 사용자 제공 `03_LYH00763_선수정-1.jpg` 원본, 3736 × 5604. 갤러리는 기존 9장에 메인 사진과 `LYH03499_수정_솔_1.jpg`를 포함한 총 11장이며, 제공받은 원본에서 웹용 WebP와 썸네일을 생성합니다.
 - 약도: 카카오맵 더채플앳 청담 ‘약도 만들기 → 일반지도’, https://place.map.kakao.com/roughmap/placeRoughMap.daum?confirmid=23182563 (2026-10-25 생성).
+- 앱 연결: [카카오맵 URL Scheme](https://apis.map.kakao.com/ios_v2/docs/getting-started/urlscheme/), [네이버 지도 URL Scheme](https://guide.ncloud-docs.com/docs/application-maps-url-scheme-vpc), [Chrome Android Intent와 웹 fallback](https://developer.chrome.com/docs/android/intents).
 - 위치 및 교통 검토: https://thechapel.co.kr/home/index 및 기존 청첩장 참고 자료.
 - 셔틀·교통 안내: https://app.wisewedding.co.kr/weddinghall/weddinghall_share.asp?code=851
 - ATM 층수: [웨딩북 방문 후기](https://www.weddingbook.com/review/811?reviewType=BLOG_REVIEW), [2026년 6월 24일 방문 후기](https://subinc206.tistory.com/entry/결혼준비-4-메종드아나하-계약금까지-포기하고-더채플앳청담을-선택한-이유-하객-후기) (2026-10-25 확인).
