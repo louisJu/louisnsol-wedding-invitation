@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node scripts/serve.mjs",
-    "check": "node --check dist/config.js && node --check dist/app.js && node --check dist/motion.js && node scripts/check.mjs",
+    "check": "node --check dist/config.js && node --check dist/app.js && node --check dist/motion.js && node --check dist/map-links.js && node --check dist/map-launch.js && node scripts/check.mjs && node --test scripts/map-navigation.test.mjs",
     "prepare:pages": "node scripts/prepare-pages.mjs",
     "images:optimize": "node scripts/optimize-images.mjs",
     "images:lossless": "node scripts/optimize-images.mjs --originals"

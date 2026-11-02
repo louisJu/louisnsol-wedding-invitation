@@ -139,29 +139,14 @@
   $("venue-address").textContent = config.venue.address;
   $("copy-address").addEventListener("click", () => copy(config.venue.address, "예식장 주소를 복사했어요."));
   const { latitude: lat, longitude: lng, name: venueName } = config.venue;
-  const naverMapUrl = config.venue.naverPlaceId
-    ? `https://map.naver.com/p/entry/place/${encodeURIComponent(config.venue.naverPlaceId)}`
-    : `https://map.naver.com/v5/search/${encodeURIComponent(venueName)}`;
-  const kakaoMapUrl = `https://map.kakao.com/link/map/${encodeURIComponent(venueName)},${lat},${lng}`;
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
-    || (/Macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
-  const mobileMapLink = (appUrl, webUrl, packageName) => {
-    if (isAndroid) {
-      const [scheme, destination] = appUrl.split("://");
-      return `intent://${destination}#Intent;scheme=${scheme};package=${packageName};S.browser_fallback_url=${encodeURIComponent(webUrl)};end`;
-    }
-    return isIOS ? appUrl : webUrl;
-  };
-  const naverAppUrl = `nmap://place?lat=${lat}&lng=${lng}&name=${encodeURIComponent(venueName)}&appname=${encodeURIComponent(config.siteUrl)}`;
-  const kakaoAppUrl = `kakaomap://look?p=${lat},${lng}`;
-  $("naver-map").href = mobileMapLink(naverAppUrl, naverMapUrl, "com.nhn.android.nmap");
-  $("kakao-map").href = mobileMapLink(kakaoAppUrl, kakaoMapUrl, "net.daum.android.map");
+  const maps = window.WEDDING_MAPS;
+  $("naver-map").href = maps.link("naver");
+  $("kakao-map").href = maps.link("kakao");
   $("map-confirm").href = $("kakao-map").href;
-  $("naver-map-web").href = naverMapUrl;
-  $("kakao-map-web").href = kakaoMapUrl;
-  $("map-confirm-web").href = kakaoMapUrl;
-  const mapAction = isAndroid || isIOS ? "앱으로 열기" : "새 창에서 열기";
+  $("naver-map-web").href = maps.providers.naver.webUrl;
+  $("kakao-map-web").href = maps.providers.kakao.webUrl;
+  $("map-confirm-web").href = maps.providers.kakao.webUrl;
+  const mapAction = maps.isAndroid || maps.isIOS ? "앱으로 열기" : "새 창에서 열기";
   $("naver-map").setAttribute("aria-label", `네이버지도 ${mapAction}`);
   $("kakao-map").setAttribute("aria-label", `카카오맵 ${mapAction}`);
   $("map-confirm").setAttribute("aria-label", `확인, 카카오맵 ${mapAction}`);
@@ -170,10 +155,8 @@
   $("tmap").href = `tmap://route?goalname=${encodeURIComponent(venueName)}&goalx=${lng}&goaly=${lat}`;
   $("tmap").setAttribute("aria-label", "티맵 앱으로 길찾기");
 
-  // Keep the anchor's native navigation: Safari must receive the destination
-  // directly from the user's tap, without a blank popup or scripted redirect.
-  // iOS has no reliable installed-app check. Keep an explicit web alternative
-  // instead of a timed redirect that can interrupt an app prompt or a return visit.
+  // Open real destinations with native links. The iOS connection page owns
+  // its app attempt and web fallback; it cannot navigate this invitation tab.
   [$("map-confirm"), $("map-confirm-web")].forEach((link) => {
     link.addEventListener("click", () => {
       setTimeout(() => { if ($("map-dialog").open) $("map-dialog").close(); }, 0);
