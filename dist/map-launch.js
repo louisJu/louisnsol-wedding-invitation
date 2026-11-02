@@ -1,35 +1,47 @@
 (() => {
   "use strict";
   const maps = window.WEDDING_MAPS;
-  const key = new URLSearchParams(window.location.search).get("provider");
-  const status = document.getElementById("map-launch-status");
-  // Only known providers are accepted; never redirect to a URL from the query.
-  if (!maps || !["naver", "kakao"].includes(key)) {
-    status.textContent = "청첩장에서 지도 버튼을 다시 눌러 주세요.";
+  if (!maps) return;
+  const url = new URL(window.location.href);
+  // Keep previously deployed connection links usable, but load the actual
+  // invitation before navigating away so Back always has a real page to show.
+  if (url.pathname.endsWith("/map-launch.html")) {
+    const legacyKey = url.searchParams.get("provider");
+    const destination = ["naver", "kakao"].includes(legacyKey)
+      ? maps.entry(legacyKey, "app") : "index.html#location";
+    window.location.replace(new URL(destination, url).href);
     return;
   }
+  const key = url.searchParams.get("open-map");
+  // Only configured providers are accepted, never arbitrary query URLs.
+  if (!["naver", "kakao"].includes(key)) return;
+  const webOnly = url.searchParams.get("map-mode") === "web";
+  const status = document.getElementById("map-navigation-status");
   const provider = maps.providers[key];
-  const appLink = document.getElementById("map-launch-app");
-  const webLink = document.getElementById("map-launch-web");
-  document.getElementById("map-launch-title").textContent = `${provider.name} 연결`;
-  document.getElementById("map-launch-actions").hidden = false;
-  appLink.href = maps.isAndroid ? maps.link(key) : provider.appUrl;
-  webLink.href = provider.webUrl;
+  // Consume the request before leaving. A full reload after Back must not
+  // launch again, even when the browser does not restore the page from memory.
+  url.searchParams.delete("open-map");
+  url.searchParams.delete("map-mode");
+  url.hash = "location";
+  try { window.history.replaceState(window.history.state, "", url.href); }
+  catch { window.location.replace(url.href); return; }
   let timer;
   let generation = 0;
   let started = false;
   let pending = false;
+  let ready = document.readyState === "complete";
   const clearFallback = () => { clearTimeout(timer); generation += 1; };
   const cancel = () => {
     clearFallback();
     pending = false;
-    if (started) status.textContent = "앱이 열리지 않았다면 웹 지도로 확인해 주세요.";
+    status.hidden = true;
   };
   const openWeb = () => {
     cancel();
     status.textContent = "웹 지도로 이동합니다.";
-    // This replaces only the connection tab, never the original invitation.
-    window.location.replace(provider.webUrl);
+    status.hidden = false;
+    // Keep the rendered invitation in this tab's history for Back navigation.
+    window.location.assign(provider.webUrl);
   };
   const scheduleFallback = () => {
     clearFallback();
@@ -43,14 +55,15 @@
     started = true;
     pending = true;
     status.textContent = "앱이 열리지 않으면 잠시 후 웹 지도로 이동합니다.";
+    status.hidden = false;
     scheduleFallback();
   };
   const start = () => {
     // A background tab must wait until the visitor opens it.
-    if (started || document.visibilityState === "hidden" || !document.hasFocus()) return;
-    if (!maps.isIOS && !maps.isAndroid) { started = true; openWeb(); return; }
+    if (!ready || started || document.visibilityState === "hidden" || !document.hasFocus()) return;
+    if (webOnly || (!maps.isIOS && !maps.isAndroid)) { started = true; openWeb(); return; }
     beginAttempt();
-    try { window.location.href = appLink.href; } catch { openWeb(); }
+    try { window.location.href = provider.appUrl; } catch { openWeb(); }
   };
   // Native app prompts may temporarily blur the page. Pause until focus returns.
   window.addEventListener("blur", clearFallback);
@@ -64,9 +77,11 @@
   });
   window.addEventListener("pagehide", () => { started = true; cancel(); });
   window.addEventListener("pageshow", (event) => { if (event.persisted) { started = true; cancel(); } });
-  // Retry stays a normal app link so it carries the visitor's tap directly.
-  appLink.addEventListener("click", beginAttempt);
-  webLink.addEventListener("click", cancel);
-  document.getElementById("map-launch-back").addEventListener("click", cancel);
+  // A new explicit choice starts in its own tab; cancel this pending attempt.
+  ["naver-map", "kakao-map", "tmap", "naver-map-web", "kakao-map-web", "map-confirm", "map-confirm-web"]
+    .forEach((id) => document.getElementById(id).addEventListener("click", cancel));
+  // Leave the initial load before navigation; early redirects may replace the
+  // initial history entry instead of keeping it available to the Back button.
+  if (!ready) window.addEventListener("load", () => setTimeout(() => { ready = true; start(); }, 0), { once: true });
   start();
 })();

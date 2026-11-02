@@ -20,13 +20,16 @@
       packageName: "net.daum.android.map"
     }
   };
-  const link = (key) => {
+  const entry = (key, mode) => `index.html?open-map=${key}&map-mode=${mode}#location`;
+  const link = (key, mode = "app") => {
     const provider = providers[key];
+    if (mode === "web" || (!isIOS && !isAndroid)) return entry(key, "web");
     if (isAndroid) {
       const [scheme, destination] = provider.appUrl.split("://");
-      return `intent://${destination}#Intent;scheme=${scheme};package=${provider.packageName};S.browser_fallback_url=${encodeURIComponent(provider.webUrl)};end`;
+      const fallback = new URL(entry(key, "web"), window.location.href).href;
+      return `intent://${destination}#Intent;scheme=${scheme};package=${provider.packageName};S.browser_fallback_url=${encodeURIComponent(fallback)};end`;
     }
-    return isIOS ? `map-launch.html?provider=${key}` : provider.webUrl;
+    return entry(key, "app");
   };
-  window.WEDDING_MAPS = { providers, link, isIOS, isAndroid };
+  window.WEDDING_MAPS = { providers, link, entry, isIOS, isAndroid };
 })();

@@ -143,9 +143,9 @@
   $("naver-map").href = maps.link("naver");
   $("kakao-map").href = maps.link("kakao");
   $("map-confirm").href = $("kakao-map").href;
-  $("naver-map-web").href = maps.providers.naver.webUrl;
-  $("kakao-map-web").href = maps.providers.kakao.webUrl;
-  $("map-confirm-web").href = maps.providers.kakao.webUrl;
+  $("naver-map-web").href = maps.link("naver", "web");
+  $("kakao-map-web").href = maps.link("kakao", "web");
+  $("map-confirm-web").href = maps.link("kakao", "web");
   const mapAction = maps.isAndroid || maps.isIOS ? "앱으로 열기" : "새 창에서 열기";
   $("naver-map").setAttribute("aria-label", `네이버지도 ${mapAction}`);
   $("kakao-map").setAttribute("aria-label", `카카오맵 ${mapAction}`);
@@ -155,8 +155,8 @@
   $("tmap").href = `tmap://route?goalname=${encodeURIComponent(venueName)}&goalx=${lng}&goaly=${lat}`;
   $("tmap").setAttribute("aria-label", "티맵 앱으로 길찾기");
 
-  // Open real destinations with native links. The iOS connection page owns
-  // its app attempt and web fallback; it cannot navigate this invitation tab.
+  // Keep native new-tab links. Map navigation in the destination tab preserves
+  // a rendered invitation in its own history, leaving this original tab intact.
   [$("map-confirm"), $("map-confirm-web")].forEach((link) => {
     link.addEventListener("click", () => {
       setTimeout(() => { if ($("map-dialog").open) $("map-dialog").close(); }, 0);

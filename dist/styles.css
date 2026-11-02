@@ -132,6 +132,7 @@ img { display: block; max-width: 100%; }
 .map-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .map-links a { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 48px; background: var(--paper); border: 1px solid #cfcfcb; border-radius: var(--radius); font-size: 12px; font-weight: 500; white-space: nowrap; }
 .map-links svg { flex: none; width: 16px; height: 16px; }
+.map-navigation-status { margin-top: 18px; color: var(--muted); font-size: 12px; text-align: center; word-break: keep-all; }
 .map-web-options { display: flex; flex-direction: column; align-items: center; margin-top: 18px; color: var(--muted); font-size: 12px; line-height: 1.8; text-align: center; }
 .map-web-links { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .map-web-options a { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; padding: 0 8px; color: var(--ink); text-decoration: underline; text-decoration-color: #cfcfcb; text-underline-offset: 4px; }
