@@ -23,7 +23,6 @@
   <a class="skip-link" href="#location">오시는 길 바로가기</a>
   <aside class="desktop-note" aria-hidden="true"><span>결혼식 초대장</span><p><span data-groom>주환석</span> · <span data-bride>김솔</span></p><i data-date-numeric>2027. 01. 09.</i></aside>
   <main class="invitation">
-    <div id="flower-effect" class="flower-effect" aria-hidden="true"></div>
     <header class="hero" id="home">
       <div class="hero-portrait">
         <img id="cover-image" class="hero-image" src="assets/optimized/main-web.webp" alt="초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진" fetchpriority="high" width="1200" height="1800">
@@ -71,15 +70,16 @@
       <p class="location-name"><span data-venue>더채플앳청담</span><strong data-hall>6층 채플홀</strong></p>
       <p class="address-line"><span id="venue-address">서울 강남구 선릉로 757</span><button id="copy-address" type="button" aria-label="예식장 주소 복사">복사</button></p>
       <figure class="venue-map">
-        <div class="map-frame" role="img" aria-label="더채플앳청담 위치 약도" aria-describedby="map-help">
+        <div class="map-frame">
           <iframe id="venue-map-frame" class="map-embed" src="kakao-map.html" title="더채플앳청담 위치 약도" aria-hidden="true" tabindex="-1" inert loading="lazy"></iframe>
+          <button id="map-preview" class="map-preview-button" type="button" aria-label="더채플앳청담 약도, 카카오맵 이동 확인" aria-describedby="map-help" aria-haspopup="dialog" aria-controls="map-dialog"></button>
         </div>
-        <figcaption id="map-help">자세한 위치와 길찾기는 아래 지도 버튼을 이용해 주세요.</figcaption>
+        <figcaption id="map-help">약도를 누르면 확인 후 카카오맵으로 이동합니다.</figcaption>
       </figure>
       <div class="map-links">
         <a id="naver-map" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#03c75a" d="M12 2a8 8 0 0 0-8 8c0 6 8 12 8 12s8-6 8-12a8 8 0 0 0-8-8Z"/><path fill="#fff" d="M8 6h3l3 5V6h2v9h-3l-3-5v5H8Z"/></svg>네이버지도</a>
         <a id="kakao-map" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" fill="#ffe000"/><path d="M12 5a5 5 0 0 0-5 5c0 4 5 9 5 9s5-5 5-9a5 5 0 0 0-5-5Z" fill="#3a8de4"/><circle cx="12" cy="10" r="2" fill="#fff"/></svg>카카오맵</a>
-        <a id="tmap"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00bfd9" d="M3 4h18v5H3Z"/><path fill="#aa57e3" d="M10 4h5v17h-5Z"/><path fill="#ff7cac" d="M3 4h12v5H3Z"/></svg>티맵</a>
+        <a id="tmap" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#00bfd9" d="M3 4h18v5H3Z"/><path fill="#aa57e3" d="M10 4h5v17h-5Z"/><path fill="#ff7cac" d="M3 4h12v5H3Z"/></svg>티맵</a>
       </div>
       <div class="transport-list" id="transport-list"></div>
     </section>
@@ -94,8 +94,23 @@
     <footer class="section closing" id="share"><p class="closing-title">함께해 주시는 마음,<br>오래도록 기억하겠습니다.</p><p class="signature"><span data-groom>주환석</span><span class="muted">그리고</span><span data-bride>김솔</span></p><div class="share-actions"><button id="share-button" class="button button-solid" type="button">청첩장 공유하기 <span aria-hidden="true">↗</span></button><button id="copy-link" class="button button-outline" type="button">청첩장 주소 복사 <span class="copy-icon" aria-hidden="true"></span></button></div><a href="#home" class="back-top">맨 위로 ↑</a><p class="footer-date" data-date-numeric>2027. 01. 09.</p></footer>
   </main>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <button id="flower-toggle" class="flower-toggle" type="button" aria-pressed="true" aria-controls="flower-effect" aria-label="안개꽃 효과 끄기" title="안개꽃 효과 끄기" hidden><img src="assets/babys-breath.svg" alt="" width="24" height="24"></button>
-  <dialog id="lightbox" class="lightbox" aria-label="웨딩 사진 크게 보기"><button class="dialog-close" type="button" data-close aria-label="사진 닫기">×</button><img id="lightbox-image" alt=""><div class="lightbox-controls"><button id="lightbox-prev" type="button" aria-label="이전 사진">←</button><span id="lightbox-position" aria-live="polite"></span><button id="lightbox-next" type="button" aria-label="다음 사진">→</button></div></dialog>
+  <dialog id="map-dialog" class="map-dialog" aria-labelledby="map-dialog-title" aria-describedby="map-dialog-description">
+    <h2 id="map-dialog-title">카카오맵으로 이동할까요?</h2>
+    <p id="map-dialog-description">카카오맵에서 <span data-venue>더채플앳청담</span>의<br>위치와 길찾기를 확인할 수 있습니다.</p>
+    <div class="map-dialog-actions">
+      <button class="button button-outline" type="button" data-close autofocus>취소</button>
+      <a id="map-confirm" class="button button-solid" target="_blank" rel="noopener noreferrer" aria-label="확인, 카카오맵 새 창에서 열기">확인</a>
+    </div>
+  </dialog>
+  <dialog id="lightbox" class="lightbox" aria-label="웨딩 사진 크게 보기" aria-describedby="lightbox-hint">
+    <button class="dialog-close" type="button" data-close aria-label="사진 닫기">×</button>
+    <div id="lightbox-stage" class="lightbox-stage"><img id="lightbox-image" alt="" draggable="false"></div>
+    <div class="lightbox-controls">
+      <button id="lightbox-prev" type="button" aria-label="이전 사진">←</button>
+      <div class="lightbox-caption"><span id="lightbox-position" aria-live="polite" aria-atomic="true"></span><p id="lightbox-hint">좌우로 넘겨보세요</p></div>
+      <button id="lightbox-next" type="button" aria-label="다음 사진">→</button>
+    </div>
+  </dialog>
   <noscript><p class="noscript">주환석 · 김솔의 결혼식에 초대합니다. 2027년 1월 9일 토요일 오후 1시, 더채플앳청담 6층 채플홀. 서울 강남구 선릉로 757. 상세 안내를 보려면 JavaScript를 켜주세요.</p></noscript>
 </body>
 </html>
