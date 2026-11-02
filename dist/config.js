@@ -7,9 +7,10 @@ window.WEDDING_CONFIG = {
   date: "2027-01-09T13:00:00+09:00",
   durationMinutes: 90,
   invitation: [
-    "사람이 온다는 건\n실은 어마어마한 일이다.\n그는 그의 과거와 현재와\n그리고 그의 미래와 함께 오기 때문이다.\n한 사람의 일생이 오기 때문이다."
+    "서로의 마음을 아끼며\n함께하는 삶을 시작하려 합니다.",
+    "저희의 새로운 시작을\n따뜻한 마음으로 축복해 주세요."
   ],
-  invitationSource: "정현종, 「방문객」\n시집 『광휘의 속삭임』",
+  invitationSource: "",
   cover: {"src": "assets/optimized/main-web.webp", "originalSrc": "assets/main/03_LYH00763_선수정-1.jpg", "width": 1200, "height": 1800, "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진", "position": "center"},
   // 새 메인 사진은 assets/main/, 갤러리 사진은 assets/gallery/에 원본 그대로 보관합니다.
   // originalSrc는 원본, *-web.webp는 웹 표시·확대용, *-thumb.webp는 목록용입니다.
