@@ -7,8 +7,11 @@ import { readConfig, dist } from "./config.mjs";
 const config = await readConfig();
 const linksSource = await readFile(new URL("map-links.js", dist), "utf8");
 const launchSource = await readFile(new URL("map-launch.js", dist), "utf8");
+const html = await readFile(new URL("index.html", dist), "utf8");
+const invitation = "https://example.test/invitation/index.html#location";
 
-function harness({ userAgent = "iPhone", maxTouchPoints = 5, provider = "naver", mode = "app", visible = true, focused = true, rejectApp = false, href, readyState = "complete" } = {}) {
+// Model lifecycle/timers and native link requests, not installed apps or Safari UI.
+function harness({ userAgent = "iPhone", maxTouchPoints = 5, visible = true, focused = true, href = invitation, readyState = "complete" } = {}) {
   const events = () => {
     const listeners = new Map();
     return {
@@ -20,23 +23,25 @@ function harness({ userAgent = "iPhone", maxTouchPoints = 5, provider = "naver",
       emit(name, event = {}) { for (const callback of listeners.get(name) || []) callback(event); }
     };
   };
-  const elements = new Map();
+  const elements = new Map([...html.matchAll(/id="([^"]+)"/g)].map(([, id]) => [id, {
+    ...events(), href: "", target: "_blank", textContent: "", hidden: true, open: false,
+    close() { this.open = false; }
+  }]));
   const document = {
     ...events(), readyState, visibilityState: visible ? "visible" : "hidden", hasFocus: () => focused,
-    getElementById(id) {
-      if (!elements.has(id)) elements.set(id, { ...events(), href: "", textContent: "", hidden: true });
-      return elements.get(id);
-    }
+    body: { style: { overflow: "" } },
+    getElementById: (id) => elements.get(id) || null,
+    querySelector: () => [...elements.values()].find(element => element.open) || null
   };
-  const appRequests = [], webRequests = [], replacements = [], timers = new Map();
-  let currentUrl = href || `https://example.test/invitation/index.html?open-map=${encodeURIComponent(provider)}&map-mode=${mode}#location`;
+  const scriptedAppRequests = [], webRequests = [], nativeRequests = [], replacements = [], timers = new Map();
+  let currentUrl = href;
   const historyEntries = [currentUrl];
   let timerId = 0;
   const window = {
     ...events(), WEDDING_CONFIG: config,
     location: {
       get href() { return currentUrl; },
-      set href(value) { appRequests.push(value); if (rejectApp) throw new Error("App navigation blocked"); },
+      set href(value) { scriptedAppRequests.push(value); },
       assign(value) { webRequests.push(value); currentUrl = value; historyEntries.push(value); },
       replace(value) { replacements.push(value); currentUrl = value; historyEntries[historyEntries.length - 1] = value; }
     },
@@ -46,143 +51,198 @@ function harness({ userAgent = "iPhone", maxTouchPoints = 5, provider = "naver",
     }
   };
   const context = vm.createContext({
-    window, document, navigator: { userAgent, maxTouchPoints }, URL, URLSearchParams, encodeURIComponent,
+    window, document, navigator: { userAgent, maxTouchPoints }, URL, encodeURIComponent,
     setTimeout(callback) { const id = ++timerId; timers.set(id, callback); return id; },
     clearTimeout(id) { timers.delete(id); }
   });
   vm.runInContext(linksSource, context);
   return {
-    window, document, appRequests, webRequests, replacements, historyEntries, timers,
+    window, document, scriptedAppRequests, webRequests, nativeRequests, replacements, historyEntries, timers,
     run() { vm.runInContext(launchSource, context); },
     tick() { const callbacks = [...timers.values()]; timers.clear(); callbacks.forEach(callback => callback()); },
     visibility(value) { document.visibilityState = value ? "visible" : "hidden"; document.emit("visibilitychange"); },
     focus(value) { focused = value; window.emit(value ? "focus" : "blur"); },
-    click(id) { document.getElementById(id).emit("click"); }
+    restore() { currentUrl = invitation; window.emit("pageshow", { persisted: true }); },
+    click(id, options = {}) {
+      const link = document.getElementById(id);
+      const event = { button: 0, defaultPrevented: false, preventDefault() { this.defaultPrevented = true; }, ...options };
+      link.emit("click", event);
+      if (!event.defaultPrevented && link.href) nativeRequests.push(link.href);
+      return event;
+    }
   };
 }
 
-test("every web route keeps an invitation entry; Android still opens its app from the original tap", () => {
+test("iOS links use a native app scheme, Android uses Intent with HTTPS fallback, desktop uses HTTPS", () => {
   for (const [userAgent, maxTouchPoints, platform] of [["iPhone", 5, "ios"], ["Macintosh", 5, "ios"], ["Macintosh", 0, "desktop"], ["Windows", 10, "desktop"], ["Android", 5, "android"]]) {
-    const { window } = harness({ userAgent, maxTouchPoints });
+    const h = harness({ userAgent, maxTouchPoints }); h.run();
+    const maps = h.window.WEDDING_MAPS;
     for (const key of ["naver", "kakao"]) {
-      const maps = window.WEDDING_MAPS, provider = maps.providers[key], link = maps.link(key);
-      if (platform === "ios") {
-        assert.equal(link, `index.html?open-map=${key}&map-mode=app#location`);
-        assert.equal(new URL(link, "https://example.test/invitation/").pathname, "/invitation/index.html");
-      } else if (platform === "desktop") assert.equal(link, maps.entry(key, "web"));
+      const provider = maps.providers[key], link = maps.link(key);
+      if (platform === "ios") assert.equal(link, provider.appUrl);
+      else if (platform === "desktop") assert.equal(link, provider.webUrl);
       else {
         assert.ok(link.startsWith("intent://"));
         assert.ok(link.includes(`package=${provider.packageName};`));
-        assert.equal(decodeURIComponent(link.match(/S.browser_fallback_url=([^;]+)/)[1]), new URL(maps.entry(key, "web"), window.location.href).href);
+        assert.equal(decodeURIComponent(link.match(/S.browser_fallback_url=([^;]+)/)[1]), provider.webUrl);
       }
-      assert.equal(maps.link(key, "web"), `index.html?open-map=${key}&map-mode=web#location`);
+      assert.equal(maps.link(key, "web"), provider.webUrl);
+      assert.equal(h.document.getElementById(`${key}-map`).target, "_self");
     }
-    const naver = new URL(window.WEDDING_MAPS.providers.naver.appUrl);
+    const naver = new URL(maps.providers.naver.appUrl);
     assert.equal(naver.searchParams.get("name"), config.venue.name);
     assert.equal(naver.searchParams.get("appname"), config.siteUrl);
     assert.equal(naver.searchParams.get("lat"), String(config.venue.latitude));
     assert.equal(naver.searchParams.get("lng"), String(config.venue.longitude));
+    assert.equal(h.document.getElementById("map-confirm").href, maps.link("kakao"));
   }
 });
 
-for (const provider of ["naver", "kakao"]) {
-  test(`${provider}: unhandled app launch automatically opens the configured web map once`, () => {
-    const h = harness({ provider }); h.run();
-    assert.deepEqual(h.appRequests, [h.window.WEDDING_MAPS.providers[provider].appUrl]);
-    assert.deepEqual(h.webRequests, []);
-    h.tick(); h.tick();
-    assert.deepEqual(h.webRequests, [h.window.WEDDING_MAPS.providers[provider].webUrl]);
-    assert.deepEqual(h.historyEntries, ["https://example.test/invitation/index.html#location", h.webRequests[0]]);
+test("loading, focusing and restoring an ordinary invitation never launch maps automatically", () => {
+  const h = harness(); h.run(); h.focus(false); h.focus(true);
+  h.visibility(false); h.visibility(true); h.restore(); h.tick();
+  assert.deepEqual(h.scriptedAppRequests, []);
+  assert.deepEqual(h.nativeRequests, []);
+  assert.deepEqual(h.webRequests, []);
+});
+
+for (const [id, key] of [["naver-map", "naver"], ["kakao-map", "kakao"], ["map-confirm", "kakao"]]) {
+  test(`${id}: three missing-app attempts each preserve a native click and one web fallback`, () => {
+    const h = harness(); h.run();
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      const event = h.click(id);
+      assert.equal(event.defaultPrevented, false);
+      assert.equal(h.nativeRequests.at(-1), h.window.WEDDING_MAPS.providers[key].appUrl);
+      assert.equal(h.timers.size, 1);
+      h.tick(); h.tick();
+      assert.equal(h.webRequests.length, attempt);
+      assert.equal(h.webRequests.at(-1), h.window.WEDDING_MAPS.providers[key].webUrl);
+      h.window.emit("pagehide"); h.restore(); h.focus(true); h.tick();
+      assert.equal(h.webRequests.length, attempt);
+      assert.equal(h.document.getElementById("map-navigation-status").hidden, true);
+    }
+    assert.equal(h.historyEntries[0], invitation);
     assert.deepEqual(h.replacements, []);
+    assert.deepEqual(h.scriptedAppRequests, []);
   });
 }
 
-test("switching to an app cancels fallback permanently, including when returning", () => {
-  const h = harness(); h.run();
-  const queued = [...h.timers.values()][0];
-  h.focus(false); h.visibility(false); h.tick();
-  h.visibility(true); h.focus(true); queued(); h.tick();
-  assert.equal(h.appRequests.length, 1);
+test("installed-app switch cancels old work, and another tap after return starts a fresh attempt", () => {
+  const h = harness(); h.run(); h.click("naver-map");
+  const stale = [...h.timers.values()][0];
+  h.focus(false); h.visibility(false); h.tick(); h.visibility(true); h.focus(true); stale(); h.tick();
   assert.deepEqual(h.webRequests, []);
+  h.click("naver-map"); h.tick();
+  assert.equal(h.nativeRequests.length, 2);
+  assert.deepEqual(h.webRequests, [h.window.WEDDING_MAPS.providers.naver.webUrl]);
 });
 
-test("an app prompt pauses fallback and resumes it when dismissed without opening the app", () => {
-  const h = harness(); h.run();
+test("changing providers invalidates even an already queued callback", () => {
+  const h = harness(); h.run(); h.click("naver-map");
+  const stale = [...h.timers.values()][0];
+  h.click("kakao-map"); stale(); assert.deepEqual(h.webRequests, []);
+  h.tick();
+  assert.deepEqual(h.webRequests, [h.window.WEDDING_MAPS.providers.kakao.webUrl]);
+  h.window.emit("pagehide"); h.restore(); h.click("naver-map"); h.tick();
+  assert.equal(h.webRequests.at(-1), h.window.WEDDING_MAPS.providers.naver.webUrl);
+});
+
+test("app prompts pause fallback and dismissing a prompt resumes a fresh delay", () => {
+  const h = harness(); h.run(); h.click("naver-map");
   h.focus(false); h.tick(); assert.deepEqual(h.webRequests, []);
-  h.focus(true); h.tick(); assert.equal(h.webRequests.length, 1);
+  h.focus(true); assert.equal(h.timers.size, 1); h.tick();
+  assert.equal(h.webRequests.length, 1);
 });
 
-test("a background tab waits for visible focus before attempting navigation", () => {
-  const h = harness({ visible: false, focused: false }); h.run(); h.tick();
-  assert.deepEqual(h.appRequests, []);
-  h.visibility(true); assert.deepEqual(h.appRequests, []);
-  h.focus(true); assert.equal(h.appRequests.length, 1);
-});
-
-test("page exit and back-forward-cache restoration never trigger a delayed web redirect", () => {
-  const h = harness(); h.run();
-  h.window.emit("pagehide"); h.window.emit("pageshow", { persisted: true });
-  h.focus(true); h.visibility(true); h.tick();
+test("page exit and cached restoration clear timers, dialog and scroll lock before the next click", () => {
+  const h = harness(); h.run(); h.click("kakao-map");
+  const stale = [...h.timers.values()][0];
+  h.document.getElementById("map-dialog").open = true;
+  h.document.body.style.overflow = "hidden";
+  h.window.emit("pagehide"); h.restore(); h.focus(true); stale(); h.tick();
+  assert.equal(h.document.getElementById("map-dialog").open, false);
+  assert.equal(h.document.body.style.overflow, "");
   assert.deepEqual(h.webRequests, []);
-  assert.equal(h.appRequests.length, 1);
+  h.click("map-confirm"); h.tick(); assert.equal(h.webRequests.length, 1);
 });
 
-test("explicit map choices cancel the previous pending automatic navigation", () => {
-  for (const id of ["naver-map", "kakao-map", "naver-map-web", "kakao-map-web", "map-confirm", "map-confirm-web", "tmap"]) {
-    const h = harness(); h.run(); h.click(id); h.tick();
+test("map confirmation closes the dialog synchronously without cancelling native navigation", () => {
+  const h = harness(); h.run();
+  h.document.getElementById("map-dialog").open = true;
+  h.document.body.style.overflow = "hidden";
+  const event = h.click("map-confirm");
+  assert.equal(event.defaultPrevented, false);
+  assert.equal(h.document.getElementById("map-dialog").open, false);
+  assert.equal(h.document.body.style.overflow, "");
+});
+
+test("opening a preview or choosing TMAP cancels another provider's pending fallback", () => {
+  for (const id of ["map-preview", "tmap"]) {
+    const h = harness(); h.run(); h.click("naver-map"); h.click(id); h.tick();
     assert.deepEqual(h.webRequests, []);
   }
 });
 
-test("choosing a map again cannot revive old callbacks in the previous invitation tab", () => {
-  const h = harness(); h.run(); const queued = [...h.timers.values()][0];
-  h.visibility(false); h.visibility(true); h.click("naver-map");
-  queued(); assert.deepEqual(h.webRequests, []);
-  h.tick(); assert.equal(h.webRequests.length, 0);
-});
-
-test("unknown providers and URL injection cannot redirect the connection page", () => {
-  for (const provider of ["", "__proto__", "https://example.org", "naver&url=https://example.org"]) {
-    const h = harness({ provider }); h.run(); h.tick();
-    assert.deepEqual(h.appRequests, []); assert.deepEqual(h.webRequests, []);
+test("modified or already handled clicks do not arm automatic navigation", () => {
+  for (const options of [{ metaKey: true }, { ctrlKey: true }, { shiftKey: true }, { altKey: true }, { button: 1 }, { defaultPrevented: true }]) {
+    const h = harness(); h.run(); h.click("naver-map", options); h.tick();
+    assert.deepEqual(h.webRequests, []); assert.equal(h.timers.size, 0);
   }
 });
 
-test("synchronously blocked app navigation falls back to web without a second timer redirect", () => {
-  const h = harness({ rejectApp: true }); h.run(); h.tick();
-  assert.equal(h.webRequests.length, 1);
-});
-
-test("opening the connection page on desktop goes directly to web", () => {
-  const h = harness({ userAgent: "Macintosh", maxTouchPoints: 0 }); h.run(); h.tick();
-  assert.deepEqual(h.appRequests, []); assert.equal(h.webRequests.length, 1);
-});
-
-test("a cold reload of the Back destination shows the invitation without launching again", () => {
-  const h = harness(); h.run(); h.tick();
-  const back = harness({ href: h.historyEntries[0] }); back.run(); back.tick();
-  assert.deepEqual(back.appRequests, []); assert.deepEqual(back.webRequests, []);
-  assert.equal(new URL(back.window.location.href).hash, "#location");
-});
-
-test("explicit web mode and Android app-missing fallback never attempt an app again", () => {
-  for (const userAgent of ["iPhone", "Android"]) {
-    const h = harness({ userAgent, mode: "web" }); h.run(); h.tick();
-    assert.deepEqual(h.appRequests, []); assert.equal(h.webRequests.length, 1);
-    assert.equal(h.historyEntries.length, 2);
+test("Android and desktop rely on native navigation without a competing JavaScript timer", () => {
+  for (const userAgent of ["Android", "Windows"]) {
+    const h = harness({ userAgent }); h.run(); h.click("naver-map"); h.tick();
+    assert.equal(h.nativeRequests.length, 1);
+    assert.deepEqual(h.scriptedAppRequests, []); assert.deepEqual(h.webRequests, []);
   }
 });
 
-test("navigation waits for the invitation load to finish so its history entry is retained", () => {
-  const h = harness({ mode: "web", readyState: "interactive" }); h.run();
-  h.focus(true); h.tick(); assert.deepEqual(h.webRequests, []);
-  h.document.readyState = "complete"; h.window.emit("load");
-  assert.deepEqual(h.webRequests, []); h.tick(); assert.equal(h.webRequests.length, 1);
-  assert.equal(h.historyEntries[0], "https://example.test/invitation/index.html#location");
+test("manual web guidance and links are removed, without leaving required elements in the controller", () => {
+  assert.doesNotMatch(html, /map-web-options|map-confirm-web|naver-map-web|kakao-map-web/);
+  const h = harness(); assert.doesNotThrow(() => h.run());
 });
 
-test("previously deployed connection URLs first load the actual invitation", () => {
-  const h = harness({ href: "https://example.test/invitation/map-launch.html?provider=kakao" }); h.run(); h.tick();
-  assert.deepEqual(h.replacements, ["https://example.test/invitation/index.html?open-map=kakao&map-mode=app#location"]);
-  assert.deepEqual(h.webRequests, []); assert.deepEqual(h.appRequests, []);
+test("legacy launch URLs use web once, remove launch parameters, and never auto-launch an app", () => {
+  for (const key of ["naver", "kakao"]) {
+    const h = harness({ href: `https://example.test/invitation/index.html?open-map=${key}&map-mode=app#location` }); h.run(); h.tick();
+    assert.deepEqual(h.scriptedAppRequests, []);
+    assert.deepEqual(h.webRequests, [h.window.WEDDING_MAPS.providers[key].webUrl]);
+    assert.equal(h.historyEntries[0], invitation);
+    h.window.emit("pagehide"); h.restore(); h.focus(true); h.tick();
+    assert.equal(h.webRequests.length, 1);
+    const cold = harness({ href: h.historyEntries[0] }); cold.run(); cold.tick();
+    assert.deepEqual(cold.webRequests, []);
+    cold.click(`${key}-map`); cold.tick(); assert.equal(cold.webRequests.length, 1);
+  }
+});
+
+test("legacy web navigation waits for initial load and visible focus to preserve invitation history", () => {
+  const h = harness({ href: "https://example.test/invitation/index.html?open-map=kakao#location", visible: false, focused: false, readyState: "interactive" }); h.run();
+  h.tick(); assert.deepEqual(h.webRequests, []);
+  h.document.readyState = "complete"; h.window.emit("load"); h.tick();
+  assert.deepEqual(h.webRequests, []);
+  h.visibility(true); h.focus(true); assert.equal(h.webRequests.length, 1);
+  assert.equal(h.historyEntries[0], invitation);
+});
+
+test("old connection page URLs redirect to the invitation in web-only mode", () => {
+  const h = harness({ href: "https://example.test/invitation/map-launch.html?provider=kakao" }); h.run();
+  assert.deepEqual(h.replacements, ["https://example.test/invitation/index.html?open-map=kakao&map-mode=web#location"]);
+  assert.deepEqual(h.scriptedAppRequests, []); assert.deepEqual(h.webRequests, []);
+});
+
+test("a fresh map choice before initial load cancels an old launch URL", () => {
+  for (const id of ["tmap", "map-preview"]) {
+    const h = harness({ href: "https://example.test/invitation/index.html?open-map=naver#location", readyState: "interactive" }); h.run();
+    h.click(id); h.document.readyState = "complete"; h.window.emit("load"); h.tick();
+    assert.deepEqual(h.webRequests, []);
+  }
+});
+
+test("unknown providers and query injection cannot trigger an automatic redirect", () => {
+  for (const key of ["", "__proto__", "https://example.org", "naver&url=https://example.org"]) {
+    const h = harness({ href: `https://example.test/invitation/index.html?open-map=${encodeURIComponent(key)}#location` }); h.run(); h.tick();
+    assert.deepEqual(h.scriptedAppRequests, []); assert.deepEqual(h.webRequests, []); assert.deepEqual(h.replacements, []);
+  }
 });

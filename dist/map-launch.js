@@ -3,85 +3,113 @@
   const maps = window.WEDDING_MAPS;
   if (!maps) return;
   const url = new URL(window.location.href);
-  // Keep previously deployed connection links usable, but load the actual
-  // invitation before navigating away so Back always has a real page to show.
+  // Previously deployed intermediate URLs now lead to a real invitation.
+  // Never auto-launch a custom app scheme without a fresh visitor tap.
   if (url.pathname.endsWith("/map-launch.html")) {
-    const legacyKey = url.searchParams.get("provider");
-    const destination = ["naver", "kakao"].includes(legacyKey)
-      ? maps.entry(legacyKey, "app") : "index.html#location";
+    const key = url.searchParams.get("provider");
+    const destination = ["naver", "kakao"].includes(key)
+      ? maps.entry(key, "web") : "index.html#location";
     window.location.replace(new URL(destination, url).href);
     return;
   }
-  const key = url.searchParams.get("open-map");
-  // Only configured providers are accepted, never arbitrary query URLs.
-  if (!["naver", "kakao"].includes(key)) return;
-  const webOnly = url.searchParams.get("map-mode") === "web";
+
   const status = document.getElementById("map-navigation-status");
-  const provider = maps.providers[key];
-  // Consume the request before leaving. A full reload after Back must not
-  // launch again, even when the browser does not restore the page from memory.
+  const buttons = [["naver-map", "naver"], ["kakao-map", "kakao"], ["map-confirm", "kakao"]];
+  let timer;
+  let generation = 0;
+  let pending = null;
+  const message = (text = "") => {
+    if (!status) return;
+    status.textContent = text;
+    status.hidden = !text;
+  };
+  const clearFallback = () => { clearTimeout(timer); generation += 1; };
+  const cancel = () => { clearFallback(); pending = null; message(); };
+  const closeMapDialog = () => {
+    const dialog = document.getElementById("map-dialog");
+    if (dialog?.open) dialog.close();
+    if (!document.querySelector("dialog[open]")) document.body.style.overflow = "";
+  };
+  const refreshLinks = () => {
+    buttons.forEach(([id, key]) => {
+      const link = document.getElementById(id);
+      if (!link) return;
+      link.href = maps.link(key);
+      link.target = "_self";
+    });
+    const tmap = document.getElementById("tmap");
+    if (tmap) tmap.target = "_self";
+  };
+  const openWeb = (key) => {
+    cancel();
+    closeMapDialog();
+    // Append a real history entry. Back restores this same invitation.
+    window.location.assign(maps.providers[key].webUrl);
+  };
+  const scheduleFallback = () => {
+    clearFallback();
+    const current = generation;
+    const key = pending;
+    timer = setTimeout(() => {
+      if (current !== generation || !key || pending !== key || document.visibilityState === "hidden" || !document.hasFocus()) return;
+      openWeb(key);
+    }, 2000);
+  };
+
+  refreshLinks();
+  buttons.forEach(([id, key]) => {
+    document.getElementById(id)?.addEventListener("click", (event) => {
+      // Modified clicks keep the browser's usual behavior and start no timer.
+      if (event.defaultPrevented || event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      cancel();
+      refreshLinks();
+      closeMapDialog();
+      if (maps.isIOS) {
+        pending = key;
+        message("앱이 열리지 않으면 잠시 후 웹 지도로 이동합니다.");
+        scheduleFallback();
+      }
+      // The native href opens the app synchronously from this click. No popup,
+      // copied invitation, scripted app redirect, or preventDefault is needed.
+    });
+  });
+  document.getElementById("tmap")?.addEventListener("click", cancel);
+  document.getElementById("map-preview")?.addEventListener("click", cancel);
+  window.addEventListener("blur", clearFallback);
+  window.addEventListener("focus", () => {
+    if (pending && document.visibilityState !== "hidden") scheduleFallback();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") cancel();
+  });
+  window.addEventListener("pagehide", () => { cancel(); closeMapDialog(); });
+  window.addEventListener("pageshow", () => {
+    cancel(); closeMapDialog(); refreshLinks();
+  });
+
+  // Old cached links may still contain a launch request. Consume it once and
+  // use web navigation only; fresh buttons above always retain user activation.
+  const legacyKey = url.searchParams.get("open-map");
+  if (!["naver", "kakao"].includes(legacyKey)) return;
   url.searchParams.delete("open-map");
   url.searchParams.delete("map-mode");
   url.hash = "location";
   try { window.history.replaceState(window.history.state, "", url.href); }
   catch { window.location.replace(url.href); return; }
-  let timer;
-  let generation = 0;
-  let started = false;
-  let pending = false;
-  let ready = document.readyState === "complete";
-  const clearFallback = () => { clearTimeout(timer); generation += 1; };
-  const cancel = () => {
-    clearFallback();
-    pending = false;
-    status.hidden = true;
+  let legacyPending = true;
+  let loaded = document.readyState === "complete";
+  const legacyStart = () => {
+    if (!legacyPending || !loaded || document.visibilityState === "hidden" || !document.hasFocus()) return;
+    legacyPending = false;
+    openWeb(legacyKey);
   };
-  const openWeb = () => {
-    cancel();
-    status.textContent = "웹 지도로 이동합니다.";
-    status.hidden = false;
-    // Keep the rendered invitation in this tab's history for Back navigation.
-    window.location.assign(provider.webUrl);
-  };
-  const scheduleFallback = () => {
-    clearFallback();
-    const current = generation;
-    timer = setTimeout(() => {
-      if (current !== generation || !pending || document.visibilityState === "hidden" || !document.hasFocus()) return;
-      openWeb();
-    }, 2000);
-  };
-  const beginAttempt = () => {
-    started = true;
-    pending = true;
-    status.textContent = "앱이 열리지 않으면 잠시 후 웹 지도로 이동합니다.";
-    status.hidden = false;
-    scheduleFallback();
-  };
-  const start = () => {
-    // A background tab must wait until the visitor opens it.
-    if (!ready || started || document.visibilityState === "hidden" || !document.hasFocus()) return;
-    if (webOnly || (!maps.isIOS && !maps.isAndroid)) { started = true; openWeb(); return; }
-    beginAttempt();
-    try { window.location.href = provider.appUrl; } catch { openWeb(); }
-  };
-  // Native app prompts may temporarily blur the page. Pause until focus returns.
-  window.addEventListener("blur", clearFallback);
-  window.addEventListener("focus", () => {
-    if (!started) start();
-    else if (pending && document.visibilityState !== "hidden") scheduleFallback();
+  [...buttons.map(([id]) => id), "tmap", "map-preview"].forEach((id) => {
+    document.getElementById(id)?.addEventListener("click", () => { legacyPending = false; });
   });
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") cancel();
-    else start();
-  });
-  window.addEventListener("pagehide", () => { started = true; cancel(); });
-  window.addEventListener("pageshow", (event) => { if (event.persisted) { started = true; cancel(); } });
-  // A new explicit choice starts in its own tab; cancel this pending attempt.
-  ["naver-map", "kakao-map", "tmap", "naver-map-web", "kakao-map-web", "map-confirm", "map-confirm-web"]
-    .forEach((id) => document.getElementById(id).addEventListener("click", cancel));
-  // Leave the initial load before navigation; early redirects may replace the
-  // initial history entry instead of keeping it available to the Back button.
-  if (!ready) window.addEventListener("load", () => setTimeout(() => { ready = true; start(); }, 0), { once: true });
-  start();
+  window.addEventListener("pagehide", () => { legacyPending = false; });
+  window.addEventListener("pageshow", (event) => { if (event.persisted) legacyPending = false; });
+  window.addEventListener("focus", legacyStart);
+  document.addEventListener("visibilitychange", legacyStart);
+  if (!loaded) window.addEventListener("load", () => setTimeout(() => { loaded = true; legacyStart(); }, 0), { once: true });
+  legacyStart();
 })();

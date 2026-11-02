@@ -143,10 +143,7 @@
   $("naver-map").href = maps.link("naver");
   $("kakao-map").href = maps.link("kakao");
   $("map-confirm").href = $("kakao-map").href;
-  $("naver-map-web").href = maps.link("naver", "web");
-  $("kakao-map-web").href = maps.link("kakao", "web");
-  $("map-confirm-web").href = maps.link("kakao", "web");
-  const mapAction = maps.isAndroid || maps.isIOS ? "앱으로 열기" : "새 창에서 열기";
+  const mapAction = maps.isAndroid || maps.isIOS ? "앱으로 열기" : "웹 지도로 열기";
   $("naver-map").setAttribute("aria-label", `네이버지도 ${mapAction}`);
   $("kakao-map").setAttribute("aria-label", `카카오맵 ${mapAction}`);
   $("map-confirm").setAttribute("aria-label", `확인, 카카오맵 ${mapAction}`);
@@ -155,12 +152,11 @@
   $("tmap").href = `tmap://route?goalname=${encodeURIComponent(venueName)}&goalx=${lng}&goaly=${lat}`;
   $("tmap").setAttribute("aria-label", "티맵 앱으로 길찾기");
 
-  // Keep native new-tab links. Map navigation in the destination tab preserves
-  // a rendered invitation in its own history, leaving this original tab intact.
-  [$("map-confirm"), $("map-confirm-web")].forEach((link) => {
-    link.addEventListener("click", () => {
-      setTimeout(() => { if ($("map-dialog").open) $("map-dialog").close(); }, 0);
-    });
+  // Close before navigation so a cached page cannot restore a blocking dialog.
+  // Do not cancel the native link: Safari needs the visitor's actual tap.
+  $("map-confirm").addEventListener("click", () => {
+    if ($("map-dialog").open) $("map-dialog").close();
+    document.body.style.overflow = "";
   });
   config.venue.transport.forEach((item) => {
     const row = element("article", undefined, "transport-item");
@@ -440,7 +436,7 @@
       $("gallery-grid").append(tile);
     }
   }
-  function openDialog(dialog) { dialog.showModal(); document.body.style.overflow = "hidden"; }
+  function openDialog(dialog) { if (!dialog.open) dialog.showModal(); document.body.style.overflow = "hidden"; }
   document.querySelectorAll("dialog").forEach((dialog) => {
     dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
     dialog.addEventListener("close", () => { document.body.style.overflow = ""; });

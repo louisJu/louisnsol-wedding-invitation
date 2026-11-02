@@ -23,13 +23,12 @@
   const entry = (key, mode) => `index.html?open-map=${key}&map-mode=${mode}#location`;
   const link = (key, mode = "app") => {
     const provider = providers[key];
-    if (mode === "web" || (!isIOS && !isAndroid)) return entry(key, "web");
+    if (mode === "web" || (!isIOS && !isAndroid)) return provider.webUrl;
     if (isAndroid) {
       const [scheme, destination] = provider.appUrl.split("://");
-      const fallback = new URL(entry(key, "web"), window.location.href).href;
-      return `intent://${destination}#Intent;scheme=${scheme};package=${provider.packageName};S.browser_fallback_url=${encodeURIComponent(fallback)};end`;
+      return `intent://${destination}#Intent;scheme=${scheme};package=${provider.packageName};S.browser_fallback_url=${encodeURIComponent(provider.webUrl)};end`;
     }
-    return entry(key, "app");
+    return provider.appUrl;
   };
   window.WEDDING_MAPS = { providers, link, entry, isIOS, isAndroid };
 })();
