@@ -16,10 +16,10 @@ window.WEDDING_CONFIG = {
   // originalSrc는 원본, *-web.webp는 웹 표시·확대용, *-thumb.webp는 목록용입니다.
   // 사진 교체 후 npm run images:optimize && npm run prepare:pages를 실행합니다.
   // thumbnailSrc가 없으면 기존처럼 src를 목록에서도 사용합니다.
-  // 배열 순서대로 표시합니다. 2번째는 메인 사진, 6번째는 LYH00666 사진, 7번째는 LYH03499 사진입니다.
+  // 기존 11장 순서를 유지합니다. 2·11번째는 -2 버전, 7번째 LYH03499는 유지, 새 LYH03150은 마지막입니다.
   gallery: [
     {"src": "assets/optimized/gallery/gallery-01-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-01-thumb.webp", "originalSrc": "assets/gallery/01_LYH00441_기본액자_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 1"},
-    {"src": "assets/optimized/main-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-02-thumb.webp", "originalSrc": "assets/main/03_LYH00763_선수정-1.jpg", "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진"},
+    {"src": "assets/optimized/gallery/gallery-02-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-02-thumb.webp", "originalSrc": "assets/gallery/03_LYH00763_선수정-2.jpg", "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진"},
     {"src": "assets/optimized/gallery/gallery-03-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-03-thumb.webp", "originalSrc": "assets/gallery/04_LYH00960_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 3"},
     {"src": "assets/optimized/gallery/gallery-04-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-04-thumb.webp", "originalSrc": "assets/gallery/06_LYH03261_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 4"},
     {"src": "assets/optimized/gallery/gallery-05-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-05-thumb.webp", "originalSrc": "assets/gallery/05_LYH03216_bw_선수정-1(흑백).jpg", "alt": "주환석과 김솔의 웨딩 사진 5"},
@@ -28,7 +28,8 @@ window.WEDDING_CONFIG = {
     {"src": "assets/optimized/gallery/gallery-08-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-08-thumb.webp", "originalSrc": "assets/gallery/07_LYH03513_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 8"},
     {"src": "assets/optimized/gallery/gallery-09-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-09-thumb.webp", "originalSrc": "assets/gallery/08_LYH03817_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 9"},
     {"src": "assets/optimized/gallery/gallery-10-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-10-thumb.webp", "originalSrc": "assets/gallery/09_LYH03874_bw_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 10"},
-    {"src": "assets/optimized/gallery/gallery-11-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-11-thumb.webp", "originalSrc": "assets/gallery/10_LYH00366_선수정-1.jpg", "alt": "주환석과 김솔의 웨딩 사진 11"}
+    {"src": "assets/optimized/gallery/gallery-11-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-11-thumb.webp", "originalSrc": "assets/gallery/10_LYH00366_선수정-2.jpg", "alt": "주환석과 김솔의 웨딩 사진 11"},
+    {"originalSrc": "assets/gallery/LYH03150_수정_솔_2.jpg", "alt": "검은색 예복을 입고 나란히 선 주환석과 김솔의 웨딩 사진", "src": "assets/optimized/gallery/gallery-12-web.webp", "thumbnailSrc": "assets/optimized/gallery/gallery-12-thumb.webp"}
   ],
   venue: {
     name: "더채플앳청담",
