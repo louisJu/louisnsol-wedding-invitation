@@ -33,7 +33,7 @@
 | 갤러리 목록 | `dist/assets/optimized/gallery/gallery-NN-thumb.webp` | 긴 변 최대 720px | 무손실 WebP |
 | 공유 미리보기 | `dist/assets/optimized/main-share.png` | 600 × 900px 안에 맞춤 | PNG |
 
-갤러리 번호는 `gallery` 배열의 표시 순서에 맞춘다. 현재 갤러리는 12장이며 각 사진에 `gallery-NN-web.webp`와 `gallery-NN-thumb.webp`를 별도로 생성한다. 2번째는 표지와 같은 촬영 사진의 수정본(`03_LYH00763_선수정-2.jpg`)이므로 표지의 `main-web.webp`를 재사용하지 않는다. 같은 출력 `src`를 공유하는 항목은 `originalSrc`도 같아야 한다. 메인 사진을 교체할 때 재사용 항목도 함께 확인하여 서로 다른 원본으로 같은 출력 파일을 덮어쓰지 않게 한다.
+갤러리 번호는 `gallery` 배열의 표시 순서에 맞춘다. 현재 갤러리는 12장이며 각 사진에 `gallery-NN-web.webp`와 `gallery-NN-thumb.webp`를 별도로 생성한다. 표지와 갤러리 2번째는 모두 `03_LYH00763_선수정-2.jpg` 수정본을 사용한다. 원본은 용도별 main·gallery 폴더에 동일한 파일로 보관하고, 웹용 파일은 각각 `main-web.webp`와 `gallery-02-web.webp`로 관리한다. 같은 출력 `src`를 공유하는 항목은 `originalSrc`도 같아야 한다. 메인 사진을 교체할 때 재사용 항목도 함께 확인하여 서로 다른 원본으로 같은 출력 파일을 덮어쓰지 않게 한다.
 
 - 원본의 가로세로 비율을 유지하고 작은 사진을 확대하지 않는다. EXIF 방향 정보를 반영한 뒤 리사이즈한다.
 - ICC 색상 프로필을 유지한다. 웹용 사본에서는 EXIF·XMP·IPTC·8BIM 정보를 제거하지만, 원본의 메타데이터는 보존한다.

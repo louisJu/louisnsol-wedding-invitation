@@ -11,7 +11,7 @@ window.WEDDING_CONFIG = {
     "저희의 새로운 시작을\n따뜻한 마음으로 축복해 주세요."
   ],
   invitationSource: "",
-  cover: {"src": "assets/optimized/main-web.webp", "originalSrc": "assets/main/03_LYH00763_선수정-1.jpg", "width": 1200, "height": 1800, "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진", "position": "center"},
+  cover: {"src": "assets/optimized/main-web.webp", "originalSrc": "assets/main/03_LYH00763_선수정-2.jpg", "width": 1200, "height": 1800, "alt": "초록 나무와 흰 담장 앞에 나란히 선 주환석과 김솔의 웨딩 사진", "position": "center"},
   // 새 메인 사진은 assets/main/, 갤러리 사진은 assets/gallery/에 원본 그대로 보관합니다.
   // originalSrc는 원본, *-web.webp는 웹 표시·확대용, *-thumb.webp는 목록용입니다.
   // 사진 교체 후 npm run images:optimize && npm run prepare:pages를 실행합니다.
